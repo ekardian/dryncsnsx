@@ -53,8 +53,8 @@ fsourcepath3\n")
           "Música")
               if [ -f "$mallrepos" -a -d "$msourcepath" ]; then
 		find "msourcepath" -type d > "$mallrepos"
-		find "msourcepath2" -type d > "$mallrepos"
-		find "msourcepath3" -type d > "$mallrepos"
+		find "msourcepath2" -type d >> "$mallrepos"
+		find "msourcepath3" -type d >> "$mallrepos"
                 result=$(echo "DB Music mallrepos Updated - Base de datos de Música Actualizada")
                 display_result "INFORME"
               else
@@ -65,8 +65,8 @@ fsourcepath3\n")
           "Juegos")
               if [ -f "$jallrepos" -a -d "$jsourcepath" ]; then
 		find "$jsourcepath" -type d > "$jallrepos"
-		find "$jsourcepath2" -type d > "$jallrepos"
-		find "$jsourcepath3" -type d > "$jallrepos"
+		find "$jsourcepath2" -type d >> "$jallrepos"
+		find "$jsourcepath3" -type d >> "$jallrepos"
                 result=$(echo "DB Apps jallrepos Updated - Base de datos de Juegos Actualizada")
                 display_result "INFORME"
               else
@@ -77,8 +77,8 @@ fsourcepath3\n")
           "Apps")
               if [ -f "$aallrepos" -a -d "$asourcepath" ]; then
 		find "$asourcepath" -type d > "$aallrepos"
-		find "$asourcepath2" -type d > "$aallrepos"
-		find "$asourcepath3" -type d > "$aallrepos"
+		find "$asourcepath2" -type d >> "$aallrepos"
+		find "$asourcepath3" -type d >> "$aallrepos"
                 result=$(echo "DB Apps aallrepos Updated - Base de datos de Apps Actualizada")
                 display_result "INFORME"
               else
@@ -89,8 +89,8 @@ fsourcepath3\n")
           "Libros")
               if [ -f $lallrepos -a -d "$lsourcepath" ] ; then
 		find "$lsourcepath" -type f > "$lallrepos"
-		find "$lsourcepath2" -type f > "$lallrepos"
-		find "$lsourcepath3" -type f > "$lallrepos"
+		find "$lsourcepath2" -type f >> "$lallrepos"
+		find "$lsourcepath3" -type f >> "$lallrepos"
                 result=$(echo "DB Películas lallrepos Updated - Base de datos de los Libros Actualizado")
                 display_result "INFORME"
               else
@@ -105,8 +105,8 @@ lsourcepath")
           "Comics")
               if [ -f $callrepos -a -d "$csourcepath" ] ; then
 		find "$csourcepath" -type f > "$callrepos"
-		find "$csourcepath2" -type f > "$callrepos"
-		find "$csourcepath3" -type f > "$callrepos"
+		find "$csourcepath2" -type f >> "$callrepos"
+		find "$csourcepath3" -type f >> "$callrepos"
                 result=$(echo "DB Películas callrepos Updated - Base de datos de Comics Actualizado")
                 display_result "INFORME"
               else
