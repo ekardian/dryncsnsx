@@ -52,9 +52,9 @@ fsourcepath3\n")
               ;;
           "Música")
               if [ -f "$mallrepos" -a -d "$msourcepath" ]; then
-		find "msourcepath" -type d > "$mallrepos"
-		find "msourcepath2" -type d >> "$mallrepos"
-		find "msourcepath3" -type d >> "$mallrepos"
+		find "$msourcepath" -type d > "$mallrepos"
+		find "$msourcepath2" -type d >> "$mallrepos"
+		find "$msourcepath3" -type d >> "$mallrepos"
                 result=$(echo "DB Music mallrepos Updated - Base de datos de Música Actualizada")
                 display_result "INFORME"
               else
