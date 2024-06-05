@@ -405,6 +405,7 @@ while true; do
       cliente=$(dialog --stdout --title "Datos Cliente:" --inputbox "Nombre y Apellido (Prefijo):" 0 0)
       logcopy=$(echo -e "\n\n--Cliente: $cliente - $regdate" >> "$copiadoslog")
       logrip=$(echo -e "\n\n--Cliente: $cliente - $regdate" >> "$fallidoslog")
+      destino=$(dialog --stdout --title "Seleccionar Carpeta Destino:" --fselect "$dialogdest" 45 125)
       origen=$(dialog --stdout --title "Ruta Lista (ej. lcid.txt)" --fselect "$dialogorig" 45 65)
       lowtoupcase=$(sed -i "s/l/L/g" "$origen")
       exec < "$origen"
@@ -449,6 +450,7 @@ while true; do
       cliente=$(dialog --stdout --title "Datos Cliente:" --inputbox "Nombre y Apellido (Prefijo):" 0 0)
       logcopy=$(echo -e "\n\n--Cliente: $cliente - $regdate" >> "$copiadoslog")
       logrip=$(echo -e "\n\n--Cliente: $cliente - $regdate" >> "$fallidoslog")
+      destino=$(dialog --stdout --title "Seleccionar Carpeta Destino:" --fselect "$dialogdest" 45 125)
       origen=$(dialog --stdout --title "Ruta Lista (ej. ccid.txt)" --fselect "$dialogorig" 45 65)
       lowtoupcase=$(sed -i "s/c/C/g" "$origen")
       exec < "$origen"
