@@ -33,6 +33,13 @@ submenu () {
 		find "$fsourcepath" -type f > "$fallrepos"
 		find "$fsourcepath2" -type f >> "$fallrepos"
 		find "$fsourcepath3" -type f >> "$fallrepos"
+		find "$fsourcepath4" -type f >> "$fallrepos"
+		find "$fsourcepath5" -type f >> "$fallrepos"
+		find "$fsourcepath6" -type f >> "$fallrepos"
+		find "$fsourcepath7" -type f >> "$fallrepos"
+		find "$fsourcepath8" -type f >> "$fallrepos"
+		find "$fsourcepath9" -type f >> "$fallrepos"
+		find "$fsourcepath10" -type f >> "$fallrepos"
 		result=$(echo "DB Películas fallrepos Updated - Base de datos de Películas Actualizado")
                 display_result "INFORME"
               else
