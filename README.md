@@ -13,7 +13,7 @@ Scene: i need copy this 3 video files from three diferent PC's in my network or 
 
 The configuration file is `mdialog_conf`, write the paths or your samba shared resources and update the datbase with the option 9 in the main menu of dryncsnsx.
 
-With your favorite text editor write in a plain text the video file serial (1 by 1 line) or use the file `fcidtxt` and save it.
+With your favorite text editor write in a plain text the video file serial (1 by 1 line) or use the file `fcid.txt` and save it.
 
     F1
     F2
