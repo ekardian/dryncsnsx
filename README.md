@@ -22,7 +22,8 @@ With your favorite text editor write in a plain text the video file serial or us
 In the dryncs main menu choice the option 3 and follow the steps, remember do not forget your plain text, where are listed the serialized items `F1 F2 F3`.
 
 For write the serial to your files use this script or modify it to your needs.
-rename-to-serialized-files
+
+[rename-to-serialized-files](https://github.com/ekardian/)
 
 DONATION
 --------
