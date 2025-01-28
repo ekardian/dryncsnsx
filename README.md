@@ -23,11 +23,11 @@ In the dryncs main menu choice the option 3 and follow the steps, remember do no
 
 For write the serial to your files use this script or modify it to your needs.
 
-[In the beginning of the file serialize files with letter and numbers](https://github.com/ekardian/scripts-in-bash/blob/main/scripts/serialize-files-README-BEFORE-TO-USE.sh)
+[In the beginning of the file serialize files with letter and numbers](https://github.com/ekardian/scripts-in-bash/blob/main/scripts/add-numbers-before-filename.sh)
 
 or
 
-[In the end of the file serialize files with letter and numbers](https://github.com/ekardian/scripts-in-bash/blob/main/scripts/add-strings-after-extension-file-name)
+[In the end of the file serialize files with letter and numbers](https://github.com/ekardian/scripts-in-bash/blob/main/scripts/add-numbers-before-extension.sh)
 
 DONATION
 --------
