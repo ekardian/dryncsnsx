@@ -29,6 +29,10 @@ or
 
 [In the end of the file serialize files with letter and numbers](https://github.com/ekardian/scripts-in-bash/blob/main/scripts/add-numbers-before-extension.sh)
 
+and for extrat the letter/number serialized files you can try this script:
+
+[extract-strings-numbers-from-filenames.sh](https://github.com/ekardian/scripts-in-bash/blob/main/scripts/extract-strings-numbers-from-filenames.sh)
+
 DONATION
 --------
 Works for you? grate!!!! You can give me a donation via Wester Union, thanks XD
