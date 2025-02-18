@@ -21,17 +21,23 @@ With your favorite text editor write in a plain text the video file serial (1 by
 
 In the dryncs main menu choice the option 3 and follow the steps, remember do not forget your plain text, where are listed the serialized items `F1 F2 F3`.
 
-For write the serial to your files use this script or modify it to your needs.
+## For write the serial to your files use this script or modify it to your needs.
+
+For add serial to files to the begining files or before extension filenames
 
 [In the beginning of the file serialize files with letter and numbers](https://github.com/ekardian/scripts-in-bash/blob/main/scripts/add-numbers-before-filename.sh)
 
-or
-
 [In the end of the file serialize files with letter and numbers](https://github.com/ekardian/scripts-in-bash/blob/main/scripts/add-numbers-before-extension.sh)
 
-and for extrat the letter/number serialized files you can try this script:
+For extract the letter/number serialized files from the last dash in the filename, you can try this script:
 
 [extract-strings-numbers-from-filenames.sh](https://github.com/ekardian/scripts-in-bash/blob/main/scripts/extract-strings-numbers-from-filenames.sh)
+
+For Directories
+
+Add letter/numbers at the end directories
+
+[add-numbers-at-the-end-directory.sh](https://github.com/ekardian/scripts-in-bash/blob/main/scripts/add-numbers-at-the-end-directory.sh)
 
 DONATION
 --------
