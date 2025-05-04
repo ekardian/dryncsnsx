@@ -39,6 +39,14 @@ Add letter/numbers at the end directories
 
 [add-numbers-at-the-end-directory.sh](https://github.com/ekardian/scripts-in-bash/blob/main/scripts/add-numbers-at-the-end-directory.sh)
 
+Other Apps very cool for rename files.
+
+**F2 - Command-Line Batch Renaming**\
+https://github.com/ayoisaiah/f2
+
+**FileRenamer**\
+https://www.sttmedia.com/filerenamer-download
+
 DONATION
 --------
 Works for you? grate!!!! You can give me a donation via Wester Union, thanks XD
