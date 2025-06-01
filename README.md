@@ -1,6 +1,32 @@
 # dryncsnsx
 Copy from 3 source to 1 target - serialized files and directories
 
+Tested in:
+
+* Debian 12 bookworm
+* Linux Mint 22.1
+
+## Install
+
+Istalling in your ``<home>/Programs/``
+
+
+    mkdir $HOME/Programs && cd $_
+    git clone https://github.com/ekardian/dryncsnsx
+    chmod 755 dryncs
+    ./dryncs
+
+
+## Requirements
+
+dialog, rsync, bash 5.2, lsblk, blkid, perl, coreutils, samba server (optional), samba client (optional).\
+Samba Server for copy from shared resources.
+
+## How Work
+
+![scheme-dryncs](https://github.com/user-attachments/assets/52703672-741a-4159-bb84-8e9b17b0ba18)
+
+
 Example:
 
 Scene: i need copy this 3 video files from three diferent PC's in my network or locally to other place
