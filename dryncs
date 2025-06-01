@@ -29,7 +29,7 @@
 #          FILE: dryncs
 #
 #         USAGE: 
-#                mkdir ~/Programs && $_
+#                mkdir ~/Programs && cd $_
 #                clone git https://github.com/ekardian/dryncsnsx.git dryncsnsx.git
 #                cd dryncsnsx.git 
 #                chmod 755 dryncs
