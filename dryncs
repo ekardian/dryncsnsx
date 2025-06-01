@@ -1,29 +1,24 @@
 #!/bin/bash
+
+#===============================================================================
 #
-#  -- Script in Bash --
+#  -- dryncsnsx script writed in bash --
 #
-#  Dryncs, Copy files serialized from local pc or remote pc.
+#  Copy serializedd files listed from a text file
+#  from local pc or remote pc to other place. (very faster!!!)
 #
-#    Copyright @ 2023-2024, BIOS Tech <biostech@pc.biosxtreme.net>
-#              @ 2024, Erwin Castedo <blkid@protonmail.com>
-#
+#    Copyright @ 2023-2024, BIOS Tech <bioswork@gmail.com>
+#              @ 2025, Erwin Castedo <blkid@protonmail.com>
+
 # --------------------------------------------------------------------
 #
 #  GNU AFFERO GENERAL PUBLIC LICENSE
 #     Version 3, 19 November 2007
 #
-#  This program is free software: you can redistribute it and/or modify
-#  it under the terms of the GNU Affero General Public License as published by
-#  the Free Software Foundation, either version 3 of the License, or
-#  (at your option) any later version.
-#
 #  This program is distributed in the hope that it will be useful,
 #  but WITHOUT ANY WARRANTY; without even the implied warranty of
 #  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 #  GNU Affero General Public License for more details.
-#
-#  You should have received a copy of the GNU Affero General Public License
-#  along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #
 #  https://www.gnu.org/licenses/agpl-3.0.txt
 #
@@ -33,559 +28,3269 @@
 #
 #          FILE: dryncs
 #
-#         USAGE: ./dryncs
+#         USAGE: 
+#                mkdir ~/Programs && $_
+#                clone git https://github.com/ekardian/dryncsnsx.git dryncsnsx.git
+#                cd dryncsnsx.git 
+#                chmod 755 dryncs
+#                run ./dryncs
+#                configure dryncsnsx with option 9 Configuración -> 9 Configuración
+#                enjoy!!!
+#                
+#                # Creating a functions for run dryncsnsx from everywhere #
 #
-#   DESCRIPTION: Copy Files Serialized listed from a text file to one local pc o remote pc
+#                You can create a function for run dryncsnsx
+#                in your .bashrc or .bash_aliases
+#                add this lines at the end.
+#
+#                function dryncsnsx () {
+#                  # Exit if not find the path $HOME/Programs/dryncsnsx.git
+#                  cd "$HOME"/Programs/dryncsnsx.git || exit
+#                  ./dryncs
+#                }
+#
+#                Run
+#                source ~/.bashrc
+#                restart your console, exit and run your console again.
+#                Run writing
+#                dryncsnsx
+#                enjoy!!!
+#
+#                Try scenes populating dirs an files for test dryncsnsx
+#                with the scripts populate-dirs-files and populate-dirs-files-ns
+#
+#   DESCRIPTION: Copy serialized files listed from a text file
+#                from one local pc o remote pc to anywhere: pc, usb stick, etc.
 #
 #       OPTIONS: in config file 'mdialog_conf'
-#  REQUIREMENTS: rsync, dialog, bash 5.2, samba server, samba client, lsblk, blkid
-#          BUGS: Dialog in the first database update the main menu closed.
-#         NOTES: (Linux) For Remote copies add the resources you wanna share to smb.conf, (Windows) Just add the shared resources
+#
+#  REQUIREMENTS: rsync, dialog, bash 5.2, samba server, samba client, lsblk, blkid,
+#                perl, coreutils
+#
+#          BUGS: None. If you saw any -> https://github.com/ekardian/dryncsnsx/issues
+#
+#                Tested with https://www.shellcheck.net or from bash command
+#                for Debian 12
+#                $ sudo apt install shellcheck
+#                $ shellsheck dryncs
+#
+#         NOTES: Tested in debian 12, Linux Mint 22.1. (Linux) For Remote copies
+#                add the resources you wanna share to smb.conf, (Windows) Just 
+#                add the shared resources
+#
 #        AUTHOR: Erwin Castedo <blkid@protonmail.com>
-#  ORGANIZATION: BIOS Tech <pc.biosxtreme.net>
-#       CREATED: 13/07/2024 21:00
-#      REVISION: 2.0
 #
-#===============================================================================
+#  ORGANIZATION: BIOS Tech <bioswork@gmail.com>
+#                github https://github.com/ekardian/dryncsnsx
+#                Youtube Channel https://www.youtube.com/@biostech9663/videos
 #
-# SCRIPT QUE COPIA DE 1~10 FUENTES A 1 DESTINO
+#       CREATED: 2025/06/01 19:15
 #
-######################
-#    CONFIGURACIÓN   #
-######################
+#      REVISION: 4.0-stable
 #
-# set -e break if a error happen
+#      DONATION: https://github.com/ekardian/dryncsnsx#donation
+#
+###################### new code #######################
+# Menu Tweek from
+#
+# https://github.com/RileyMeta/Bash-Dialog
+# Tanks to: https://github.com/RileyMeta
+#
+# https://www.compnomics.in/post/looping-in-bash-while-for-and-select-explained-with-examples
+# https://www.compnomics.in/
+#
 
-#set -e
-
-# Config File
-
+#######################
+##    CONFIGURACIÓN   #
+#######################
+##
+## set -e break if a error happen
+#
+##set -e
+#
+## set -x break if you're debugging
+#
+##set -x
+#
+## Config File
+#
 . ./mdialog_conf
+#
+########################
+##  FIN CONFIGURACIÓN  #
+########################
+#
+## Colors and lines
+#
+ci="\e[33m"
+bci="\e[1;33m" # bold, yellow
+brci="\e[1;41;33m" # bold, red background, yellow foreground
+co="\e[0m"
+lin="echo -e ${ci}-----------------------------------------${co}"
+dlzn="\Z0"
 
-#######################
-#  FIN CONFIGURACIÓN  #
-#######################
+VERSION="4.0-stable"
 
-# submenu
-# Updating database of files and dirs
+SCRIPTNAME="dryncsnsx"
 
-submenu () {
+BACKTITLE="$SCRIPTNAME - $VERSION"
+
+# capture the key combo exit INT -> CTRL + C
+trap "aborted" INT
+
+aborted () {
   clear
-  local PS3='Por favor escoga una opción: '
-  local options=("Películas" "Música" "JUegos" "Apps" "Libros" "Comics" "Volver")
-  local opt
-  select opt in "${options[@]}"
-  do
-      case $opt in
-          "Películas")
-              if [ -f $fallrepos -a -d "$fsourcepath" ]; then
-		find "$fsourcepath" -type f > "$fallrepos"
-		find "$fsourcepath2" -type f >> "$fallrepos"
-		find "$fsourcepath3" -type f >> "$fallrepos"
-    find "$fsourcepath4" -type f >> "$fallrepos"
-    find "$fsourcepath5" -type f >> "$fallrepos"
-    find "$fsourcepath6" -type f >> "$fallrepos"
-    find "$fsourcepath7" -type f >> "$fallrepos"
-    find "$fsourcepath8" -type f >> "$fallrepos"
-    find "$fsourcepath9" -type f >> "$fallrepos"
-    find "$fsourcepath10" -type f >> "$fallrepos"
-		result=$(echo "DB Películas fallrepos Updated - Base de datos de Películas Actualizado")
-                display_result "INFORME"
-              else
-                result=$(echo "Falló Actualización de las Películas,\n
-revise la configuración de mdialog_conf\n
-y las variables:\n\n
-Db's Film\n
-fallrepos\n
-fallrepos2\n
-fallrepos3\n\n
-Paths\n
-fsourcepath\n
-fsourcepath2\n
-fsourcepath3\n")
-                display_result "INFORME DB PELÍCULAS"
-              fi
-              ;;
-          "Música")
-              if [ -f "$mallrepos" -a -d "$msourcepath" ]; then
-		find "$msourcepath" -type d > "$mallrepos"
-		find "$msourcepath2" -type d >> "$mallrepos"
-		find "$msourcepath3" -type d >> "$mallrepos"
-                result=$(echo "DB Music mallrepos Updated - Base de datos de Música Actualizada")
-                display_result "INFORME"
-              else
-                result=$(echo "Falló Actualización de mallrepos, revise la configuración mdialog_conf")
-                display_result "INFORME DB MÚSICA"
-              fi
-              ;;
-          "Juegos")
-              if [ -f "$jallrepos" -a -d "$jsourcepath" ]; then
-		find "$jsourcepath" -type d > "$jallrepos"
-		find "$jsourcepath2" -type d >> "$jallrepos"
-		find "$jsourcepath3" -type d >> "$jallrepos"
-                result=$(echo "DB Apps jallrepos Updated - Base de datos de Juegos Actualizada")
-                display_result "INFORME"
-              else
-                result=$(echo "Falló Actualización de jallrepos, revise la configuración mdialog_conf")
-                display_result "INFORME DB JUEGOS"
-              fi
-              ;;
-          "Apps")
-              if [ -f "$aallrepos" -a -d "$asourcepath" ]; then
-		find "$asourcepath" -type d > "$aallrepos"
-		find "$asourcepath2" -type d >> "$aallrepos"
-		find "$asourcepath3" -type d >> "$aallrepos"
-                result=$(echo "DB Apps aallrepos Updated - Base de datos de Apps Actualizada")
-                display_result "INFORME"
-              else
-                result=$(echo "Falló Actualización de aallrepos, revise la configuración mdialog_conf")
-                display_result "INFORME DB APPS"
-              fi
-              ;;
-          "Libros")
-              if [ -f $lallrepos -a -d "$lsourcepath" ] ; then
-		find "$lsourcepath" -type f > "$lallrepos"
-		find "$lsourcepath2" -type f >> "$lallrepos"
-		find "$lsourcepath3" -type f >> "$lallrepos"
-                result=$(echo "DB Películas lallrepos Updated - Base de datos de los Libros Actualizado")
-                display_result "INFORME"
-              else
-                result=$(echo "Falló Actualización de los Libros,\n
-revise la configuración de mdialog_conf\n
-y las variables:\n
-lallrepos\n
-lsourcepath")
-                display_result "INFORME DB LIBROS"
-              fi
-              ;;
-          "Comics")
-              if [ -f $callrepos -a -d "$csourcepath" ] ; then
-		find "$csourcepath" -type f > "$callrepos"
-		find "$csourcepath2" -type f >> "$callrepos"
-		find "$csourcepath3" -type f >> "$callrepos"
-                result=$(echo "DB Películas callrepos Updated - Base de datos de Comics Actualizado")
-                display_result "INFORME"
-              else
-                result=$(echo "Falló Actualización de los Comics,\n
-revise la configuración de mdialog_conf\n
-y las variables:\n
-callrepos\n
-csourcepath")
-                display_result "INFORME DB COMICS"
-              fi
-              ;;
-          "Volver")
-              return
-              ;;
-          *) echo "invalid option $REPLY";;
-      esac
-      return
-  done
+  echo ""
+  $lin
+  echo -e "App Aborted. If you saw a bug, please report it to:"
+  echo -e "https://github.com/ekardian/dryncsnsx/issues"
+  echo -e "DONATION: https://github.com/ekardian/dryncsnsx#donation"
+  $lin
+  echo ""
+  exit 0
 }
 
-# submenulogs
-
-submenulogs () {
+userExit () {
   clear
-  local PS3='Por favor escoga una opción: '
-  local options=("Copiados" "Fallidos" "Volver")
-  local opt
-  select opt in "${options[@]}"
-  do
-      case $opt in
-          "Copiados")
-	    test -f "$copiadoslog"
-	    dialog --clear --title "Log Copiados" --textbox "$copiadoslog" 0 0
-	    ;;
-	  "Fallidos")
-	    test -f "$fallidoslog"
-	    dialog --clear --title "Log Fallidos" --textbox "$fallidoslog" 0 0
-	    ;;
-	  "Volver")
-	    return
-	    ;;
-	  *) echo "Opción Inválida $REPLY";;
-      esac
-      return
-  done
+  echo ""
+  $lin
+  echo -e "  ${brci}  dryncsnsx has closed successfully  ${co}"
+  echo -e "https://github.com/ekardian/dryncsnsx/issues"
+  echo -e "DONATION: https://github.com/ekardian/dryncsnsx#donation"
+  $lin
+  echo ""
+  exit 1
 }
-# while-menu-dialog: a menu driven system information program
+# DIALOG Button
 
-# Status Button
+DIALOG_OK=0
 DIALOG_CANCEL=1
 DIALOG_ESC=255
-HEIGHT=19
-WIDTH=0
 
-display_result() {
-  dialog --title "$1" \
-    --no-collapse \
+
+######################
+# dialog heigth width
+######################
+
+# MENU height x width x menu-height
+MENUH=0
+MENUW=0
+MENUSCL=8
+
+# --fselect
+FSHEIGHT=17
+FSWIDTH=70
+
+# Report dimension --msgbox
+RMSGHEIGHT="31"
+RMSGWIDTH="47"
+
+main () {
+  while true; do
+    mainMenuOptions=(
+      1 "Abrir o crear lista de pedido"
+      2 "Reportes de pedidos"
+      3 "Películas"
+      4 "Música"
+      5 "Juegos"
+      6 "Apps"
+      7 "Libros"
+      8 "Comics"
+      9 "Configuración"
+      10 "Ayuda"
+      )
+
+result=$(dialog --clear --title "\Z0Menú" \
+  --backtitle "$BACKTITLE" \
+  --ok-label "Seleccionar" \
+  --cancel-label "Salir" \
+  --colors --stdout \
+  --menu "Escoja una Opción" "$MENUH" "$MENUW" "$MENUSCL" "${mainMenuOptions[@]}")
+
+case $? in
+  0) case $result in
+         1) orders ;;
+         2) reports ;;
+         3) movies ;;
+         4) music ;;
+         5) games ;;
+         6) apps ;;
+         7) books ;;
+         8) comics ;;
+         9) configs ;;
+         10) helpman ;;
+     esac
+     ;;
+  1) userExit ;;
+esac
+  done
+}
+
+###################
+# Advice functions 
+###################
+
+# Message if files/paths not exist
+
+msgnotexist () {
+  dialog --title "\Z0Warning" \
+    --colors --ok-label "Cerrar" --stdout \
+    --msgbox "$1 No Existe" 0 0
+}
+
+# Data register for customers: name client, date, log
+
+customerdatareg () {
+  logcopy=$(echo -e "\n\n--Cliente: $cliente - $regdate" >> "$copiadoslog")
+  logrip=$(echo -e "\n\n--Cliente: $cliente - $regdate" >> "$fallidoslog")
+}
+
+# Message about Database registers
+
+display_result () {
+  dialog --title "\Z0$1" \
+    --colors --ok-label "Cerrar" --no-collapse \
     --msgbox "$result" 0 0
 }
 
-# MENU
+###################
+# Orders functions
+###################
 
-while true; do
-  exec 3>&1
-  selection=$(dialog \
-    --backtitle "Panel del Sistema" \
-    --title "Menu" \
-    --cancel-label "Salir" \
-    --help-button \
-    --menu "Seleccione una Opción:" "$HEIGHT" "$WIDTH" 4 \
-    "1" "Listar Dispositivos Montados" \
-    "2" "Listar las palabras para buscar y copiar" \
-    "3" "Películas" \
-    "4" "Música" \
-    "5" "Juegos" \
-    "6" "Apps" \
-    "7" "Libros" \
-    "8" "Comics" \
-    "9" "Actualizar Bases de Datos" \
-    "0" "Ver Archivos Copiados/Fallidos" \
-    "10" "Configuración" \
-    2>&1 1>&3)
-    exit_status=$?
-    exec 3>&-
-    
-# Button Status
+# function orders info
 
-  case $exit_status in
-    $DIALOG_CANCEL)
-      clear
-      echo "Programa Terminado"
-      exit
+ordersaved () {
+  orderresult=$(echo "Orden Guardada")
+  dialog --title "\Z0$1" \
+    --colors --cr-wrap --no-collapse \
+    --msgbox "$orderresult" 0 0  
+}
+
+ordercancel () {
+  orderresult=$(echo "Orden No Guardada")
+  dialog --title "\Z0$1" \
+    --colors --no-collapse \
+    --msgbox "$orderresult" 0 0
+}
+
+orders () {
+  clear
+echo -e "$SCRIPTNAME - $VERSION\n"
+echo -e "==============================="
+echo -e " Creación de listas de Pedido"
+echo -e "===============================\n"
+echo -e "<- Menú anterior 'Menú Principal'"
+echo ""
+  COLUMNS=12
+  local PS3="Opción: "
+  echo -e "Escoja una Opción\n"
+  select choice in "Películas" "Música" "Juegos"  "Apps" "Libros"  "Comics" "Crear Archivo" "Buscar Archivos" "Volver al Menú Principal"; do
+    case $choice in
+      "Películas")
+        # Order películas
+        # dialog yesno
+        dialog --title "\Z0Escoja una Opción" \
+          --colors --stdout \
+          --yesno "Usar el archivo de pedido por defecto para Vídeos fcid.txt?, si escoge no, abra a continuación el archivo que contiene el pedido." 0 0
+        if [[ "$?" = 0 ]]; then
+          origen=$(dialog --title "\Z0Pedido de Películas" \
+            --colors --ok-label "Guardar" --stdout \
+            --editbox "$forder" 15 45)
+          if [[ "$?" = 0 ]]; then
+            echo "$origen" > "$forder"
+            ordersaved "INFORME"
+            orders
+          else
+            ordercancel "INFORME"
+            orders
+          fi
+        else
+          otherorigin=$(dialog --title "\Z0Abrir archvo de nuevo pedido de Vídeos" \
+            --colors --ok-label "Seleccionar" --stdout \
+            --fselect "./" "$FSHEIGHT" "$FSWIDTH")
+          if [[ "$?" = "0" ]]; then
+            # checking otherorigin variable it is not a file with '! -e' for file/path and '-d' for directory
+            if  [[ ! -e "$otherorigin" || -d "$otherorigin" ]]; then
+              msgnotexist "$otherorigin"
+              orders 
+            else
+              origin=$(dialog --title "\Z0Pedido de Películas" \
+                --colors --stdout \
+                --editbox "$otherorigin" 15 45)
+              if [[ "$?" = "0" ]]; then
+                echo "$origin" > "$otherorigin"
+                ordersaved "INFORME"
+                orders
+              else
+                ordercancel "INFORME"
+                orders
+              fi
+            fi
+          else
+            ordercancel "INFORME"
+            orders
+          fi
+        fi
+
+        break
       ;;
-    $DIALOG_ESC)
-      clear
-      echo "Programa Abortado" >&2
-      exit 1
+      "Música")
+        # Order música
+        # dialog yesno
+        dialog --title "\Z0Escoja una Opción" \
+          --colors --stdout \
+          --yesno "Usar el archivo de pedido por defecto para Música mcid.txt?, si escoge no, abra a continuación el archivo que contiene el pedido." 0 0
+        if [[ "$?" = 0 ]]; then
+          origen=$(dialog --title "\Z0Pedido de Música" \
+            --colors --ok-label "Guardar" --stdout \
+            --editbox "$morder" 15 45)
+          if [[ "$?" = 0 ]]; then
+            echo "$origen" > "$morder"
+            ordersaved "INFORME"
+            orders
+          else
+            ordercancel "INFORME"
+            orders
+          fi
+        else
+          otherorigin=$(dialog --title "\Z0Abrir archvo de nuevo pedido de Música" \
+            --colors --ok-label "Seleccionar" --stdout \
+            --fselect "./" "$FSHEIGHT" "$FSWIDTH")
+          if [[ "$?" = "0" ]]; then
+            # checking otherorigin variable it is not a file with '! -e' for file/path and '-d' for directory
+            if  [[ ! -e "$otherorigin" || -d "$otherorigin" ]]; then
+              msgnotexist "$otherorigin"
+              orders 
+            else
+              origin=$(dialog --title "\Z0Pedido de Música" \
+                --colors --stdout \
+                --editbox "$otherorigin" 15 45)
+              if [[ "$?" = "0" ]]; then
+                echo "$origin" > "$otherorigin"
+                ordersaved "INFORME"
+                orders
+              else
+                ordercancel "INFORME"
+                orders
+              fi
+            fi
+          else
+            ordercancel "INFORME"
+            orders
+          fi
+        fi
+
+        break
       ;;
-  esac
-  case $selection in
-    1)
-      result=$(lsblk -o +UUID,PARTUUID)
-      display_result "Dispositivos Montados"
+      "Juegos")
+        # Orders juegos
+        # dialog yesno
+        dialog --title "\Z0Escoja una Opción" \
+          --colors --stdout \
+          --yesno "Usar el archivo de pedido por defecto para Juegos jcid.txt?, si escoge no, abra a continuación el archivo que contiene el pedido." 0 0
+        if [[ "$?" = 0 ]]; then
+          origen=$(dialog --title "\Z0Pedido de Juegos" \
+            --colors --ok-label "Guardar" --stdout \
+            --editbox "$jorder" 15 45)
+          if [[ "$?" = 0 ]]; then
+            echo "$origen" > "$jorder"
+            ordersaved "INFORME"
+            orders
+          else
+            ordercancel "INFORME"
+            orders
+          fi
+        else
+          otherorigin=$(dialog --title "\Z0Abrir archvo de nuevo pedido de Juegos" \
+            --colors --ok-label "Seleccionar" --stdout \
+            --fselect "./" "$FSHEIGHT" "$FSWIDTH")
+          if [[ "$?" = "0" ]]; then
+            # checking otherorigin variable it is not a file with '! -e' for file/path and '-d' for directory
+            if  [[ ! -e "$otherorigin" || -d "$otherorigin" ]]; then
+              msgnotexist "$otherorigin"
+              orders 
+            else
+              origin=$(dialog --title "\Z0Pedido de Juegos" \
+                --colors --stdout \
+                --editbox "$otherorigin" 15 45)
+              if [[ "$?" = "0" ]]; then
+                echo "$origin" > "$otherorigin"
+                ordersaved "INFORME"
+                orders
+              else
+                ordercancel "INFORME"
+                orders
+              fi
+            fi
+          else
+            ordercancel "INFORME"
+            orders
+          fi
+        fi
+
+        break
       ;;
-    2)
-      origen=$(dialog --stdout --title "Ruta Archivo db:" --fselect "$dialogorig" 15 125)
-      pedido=$(cat "$origen")
-      dialog --no-collapse --title "Lista de Pedido" --msgbox "$pedido" 0 0
+      "Apps")
+        # Orders apps
+        # dialog yesno
+        dialog --title "\Z0Escoja una Opción" \
+          --colors --stdout \
+          --yesno "Usar el archivo de pedido por defecto para Apps acid.txt?, si escoge no, abra a continuación el archivo que contiene el pedido." 0 0
+        if [[ "$?" = 0 ]]; then
+          origen=$(dialog --title "\Z0Pedido de Apps" \
+            --colors --ok-label "Guardar" --stdout \
+            --editbox "$aorder" 15 45)
+          if [[ "$?" = 0 ]]; then
+            echo "$origen" > "$aorder"
+            ordersaved "INFORME"
+            orders
+          else
+            ordercancel "INFORME"
+            orders
+          fi
+        else
+          otherorigin=$(dialog --title "\Z0Abrir archvo de nuevo pedido de Apps" \
+            --colors --ok-label "Seleccionar" --stdout \
+            --fselect "./" "$FSHEIGHT" "$FSWIDTH")
+          if [[ "$?" = "0" ]]; then
+            # checking otherorigin variable it is not a file with '! -e' for file/path and '-d' for directory
+            if  [[ ! -e "$otherorigin" || -d "$otherorigin" ]]; then
+              msgnotexist "$otherorigin"
+              orders 
+            else
+              origin=$(dialog --title "\Z0Pedido de Apps" \
+                --colors --stdout \
+                --editbox "$otherorigin" 15 45)
+              if [[ "$?" = "0" ]]; then
+                echo "$origin" > "$otherorigin"
+                ordersaved "INFORME"
+                orders
+              else
+                ordercancel "INFORME"
+                orders
+              fi
+            fi
+          else
+            ordercancel "INFORME"
+            orders
+          fi
+        fi
+
+        break
       ;;
-    3)
-# MOVIES BY FILM ID
-      counterc=0
-      counterf=0
-      regdate=$(date)
-      cliente=$(dialog --stdout --title "Datos Cliente:" --inputbox "Nombre y Apellido (Prefijo):" 0 0)
-      logcopy=$(echo -e "\n\n--Cliente: $cliente - $regdate" >> "$copiadoslog")
-      logrip=$(echo -e "\n\n--Cliente: $cliente - $regdate" >> "$fallidoslog")
-      destino=$(dialog --stdout --title "Seleccionar Carpeta Destino:" --fselect "$dialogdest" 45 125)
-      origen=$(dialog --stdout --title "Ruta Lista (ej. fcid.txt)" --fselect "$dialogorig" 45 65)
+      "Libros")
+        # Order libros
+        # dialog yesno
+        dialog --title "\Z0Escoja una Opción" \
+          --colors --stdout \
+          --yesno "Usar el archivo de pedido por defecto para Libros lcid.txt?, si escoge no, abra a continuación el archivo que contiene el pedido." 0 0
+        if [[ "$?" = 0 ]]; then
+          origen=$(dialog --title "\Z0Pedido de Libros" \
+            --colors --ok-label "Guardar" --stdout \
+            --editbox "$lorder" 15 45)
+          if [[ "$?" = 0 ]]; then
+            echo "$origen" > "$lorder"
+            ordersaved "INFORME"
+            orders
+          else
+            ordercancel "INFORME"
+            orders
+          fi
+        else
+          otherorigin=$(dialog --title "\Z0Abrir archvo de nuevo pedido de Libros" \
+            --colors --ok-label "Seleccionar" --stdout \
+            --fselect "./" "$FSHEIGHT" "$FSWIDTH")
+          if [[ "$?" = "0" ]]; then
+            # checking otherorigin variable it is not a file with '! -e' for file/path and '-d' for directory
+            if  [[ ! -e "$otherorigin" || -d "$otherorigin" ]]; then
+              msgnotexist "$otherorigin"
+              orders 
+            else
+              origin=$(dialog --title "\Z0Pedido de Libros" \
+                --colors --stdout \
+                --editbox "$otherorigin" 15 45)
+              if [[ "$?" = "0" ]]; then
+                echo "$origin" > "$otherorigin"
+                ordersaved "INFORME"
+                orders
+              else
+                ordercancel "INFORME"
+                orders
+              fi
+            fi
+          else
+            ordercancel "INFORME"
+            orders
+          fi
+        fi
+
+        break
+      ;;
+      "Comics")
+        # Order comics
+        # dialog yesno
+        dialog --title "\Z0Escoja una Opción" \
+          --colors --stdout \
+          --yesno "Usar el archivo de pedido por defecto para Comics ccid.txt?, si escoge no, abra a continuación el archivo que contiene el pedido." 0 0
+        if [[ "$?" = 0 ]]; then
+          origen=$(dialog --title "\Z0Pedido de Comics" \
+            --colors --ok-label "Guardar" --stdout \
+            --editbox "$corder" 15 45)
+          if [[ "$?" = 0 ]]; then
+            echo "$origen" > "$corder"
+            ordersaved "INFORME"
+            orders
+          else
+            ordercancel "INFORME"
+            orders
+          fi
+        else
+          otherorigin=$(dialog --title "\Z0Abrir archvo de nuevo pedido de Comics" \
+            --colors --ok-label "Seleccionar" --stdout \
+            --fselect "./" "$FSHEIGHT" "$FSWIDTH")
+          if [[ "$?" = "0" ]]; then
+            # checking otherorigin variable it is not a file with '! -e' for file/path and '-d' for directory
+            if  [[ ! -e "$otherorigin" || -d "$otherorigin" ]]; then
+              msgnotexist "$otherorigin"
+              orders 
+            else
+              origin=$(dialog --title "\Z0Pedido de Comics" \
+                --colors --stdout \
+                --editbox "$otherorigin" 15 45)
+              if [[ "$?" = "0" ]]; then
+                echo "$origin" > "$otherorigin"
+                ordersaved "INFORME"
+                orders
+              else
+                ordercancel "INFORME"
+                orders
+              fi
+            fi
+          else
+            ordercancel "INFORME"
+            orders
+          fi
+        fi
+
+        break
+      ;;
+      "Crear Archivo")
+        origin=$(dialog --title "\Z0Seleccionar un Directorio" \
+          --colors --ok-label "Seleccionar" --stdout \
+          --fselect "$dialogorig" "$FSHEIGHT" "$FSWIDTH")
+        # check if exist a file for not rename and if its not a directory for create a new file
+        if [[ "$?" = "0"  ]]; then
+          if [[ ! -e "$origin" || -f "$origin" ]]; then
+            dialog --title "\Z0Warning" \
+              --colors --ok-label "Cerrar" --stdout \
+              --msgbox "Seleccionó:\n\n\Z7$origin \n\n\Z0* La ruta del directorio es incorrecta o seleccionó un archivo existente.\n* Tiene que  seleccionar un directorio para crear el nuevo archivo" 0 0
+            orders
+          else
+            neworder=$(dialog --title "\Z0Nombre de Archivo" \
+              --colors --ok-label "Crear Archivo" --stdout \
+              --inputbox "" 0 0)
+            if [[ "$?" = 0 ]]; then
+              touch "$neworder" > "$origin"/"$neworder"
+              dialog --title "\Z0AVISO" \
+                --colors --stdout \
+                --msgbox "Archivo \Z7$neworder \Z0creado" 0 0
+              orders
+            else
+              dialog --title "\Z0Warning" \
+                --colors --ok-label "Cerrar" --stdout \
+                --msgbox "Se Canceló la creación del archivo" 0 0
+              orders
+            fi
+          fi
+        else
+          dialog --title "\Z0AVISO" \
+            --colors --ok-label "Cerrar" --stdout \
+            --msgbox "Creación de Archivo Cancelado" 0 0
+          orders
+        fi
+        break
+      ;;
+      "Buscar Archivos")
+        searchmodule
+        break
+      ;;
+      "Volver al Menú Principal")
+        main
+        break
+      ;;
+      *)
+        echo "Invalid choice"
+      ;;
+    esac
+  done
+}
+
+####################
+# Reports functions
+# ##################
+
+# Function Report Cancel
+
+reportcancel () {
+  reportresult=$(echo "Reporte Cancelado")
+  dialog --title "\Z0$1" \
+    --colors --ok-label "Cerrar" --stdout --no-collapse \
+    --msgbox "$reportresult" 0 0
+}
+
+# mktemp and trap function
+
+tempxall () {
+  TMPDIR="./tmp"
+  # Removing created temp files in unexpected bash exit
+  trap 'rm -f -- "$TMPDIR"/*' EXIT
+}
+
+#  Function Verifying if we have a directory or the file not exists
+
+need_file_order () {
+  dialog --title "\Z0$1" \
+    --colors --ok-label "Cerrar" --stdout \
+    --msgbox "$origen\n\nes un directorio o el archivo no existe tiene que seleccionar un archivo de texto que contenga el pedido con los IDs de los items" 0 0
+}
+
+# Function Verifying if we have a empty file
+
+empty_file_order () {
+  dialog --title "\Z0$1" \
+    --colors --ok-label "Cerrar" --stdout \
+    --msgbox "El archivo:\n\n'$origen'\n\nestá vacío.\n\nLLene un archivo manualmente con la lista de items de pedido o desde la opción del menú principal - 1) Abrir o Crear lista de pedidos" 0 0
+}
+
+# Function print report
+
+print_report_yes_no () {
+  dialog --title "\Z0$1" \
+    --colors --stdout \
+    --yesno "El Recibo de Pago fue creado en:\n\n${clientreports}${nameexch}_report_print.txt\n\nDesea Imprimir el RECIBO?\n\nSi escoje 'NO', Puede imprimirlo manualmente con lp:\n$ lp reports/<file.txt>\n$ lp -d <printer name> reports/<file.txt>" 0 0
+}
+
+reports () {
+  clear
+echo -e "$SCRIPTNAME - $VERSION\n"
+echo -e "======================"
+echo -e " Creación de Reportes"
+echo -e "======================\n"
+echo -e "<- Menu anterior 'Menú Principal'"
+echo ""
+  COLUMNS=12
+  local PS3="Opción: "
+  echo -e "Escoja una Opción\n"
+  select choice in "Películas" "Música" "Juegos"  "Apps" "Libros"  "Comics" "Ver Log de Archivos Copiados" "Ver Log de Archivos de Copias Fallidas" "Volver al Menú Principal"; do
+    case $choice in
+      "Películas")
+        # Report películas
+        clear
+        origen=$(dialog --title "\Z0RUTA ARCHIVO" \
+          --colors --ok-label "Seleccionar" --stdout \
+          --fselect "$dialogorig" "$FSHEIGHT" "$FSWIDTH")
+        if [[ "$?" = 0 ]]; then
+          if [[ ! -e "$origen" || -d "$origen" ]]; then
+            need_file_order "Warning"
+            reports
+          else
+            if [[ -z "$(cat ${origen})" ]]; then
+              empty_file_order "Warning"
+              reports
+            fi
+            
+            pedido=$(cat "$origen")
+
+            # ADDED FILTER QUALITY
+            
+            qty=0
+            qty4k=0
+            qtyimax=0
+            qtyremux=0
+            qtydef=0
+
+            # ADDED FILTER NO ITEMS
+            
+            noitem=0
+
+            # FOR FILTER UPPERCASE QUALITIES MUST BE WRITING IN THE FILES NAMES LIKE
+            # 'video-file-4K-F1234.mkv'
+            # 'video-file-IMAX-F44.mkv'
+            # 'video-file-REMUX-F3.mkv'
+
+            q4k="4K"
+            qimax="IMAX"
+            qremux="REMUX"
+
+            # Delete temp files with Trap function when EXIT
+            tempxall
+
+            # Temporary file for check inexistent items
+            tempfile=$(mktemp -p "$TMPDIR")
+
+            # Temporary file for append sum file size
+
+            tempsumsize1=$(mktemp -p "$TMPDIR")
+            tempsumsize2=$(mktemp -p "$TMPDIR")
+            tempsumsize3=$(mktemp -p "$TMPDIR")
+            tempsumsize4=$(mktemp -p "$TMPDIR")
+            tempsumsize5=$(mktemp -p "$TMPDIR")
+
+            # Temporary file for exchange
+
+            tempexch=$(mktemp -p "$TMPDIR")
+
+            sed -i '/^[[:space:]]*$/d' "$origen"
+            lowtoupcase=$(sed -i "s/f/F/g" "$origen")
+            while read -r line
+            do
+              lct=$(cat "$fallrepos" | grep -iwm 1 "$line")
+              slct=$(cat "$sfallrepos" | grep -iwm 1 "$line" > "$tempsumsize1")
+              cut -f1 "$tempsumsize1" >> "$tempsumsize2"
+
+              # Verifying if item exist
+              if [[ "$lct" =~ "$line" ]]; then
+                if [[ "$lct" =~ "$q4k" ]]; then
+                  let qty4k=qty4k+1
+                fi
+                if [[ "$lct" =~ "$qimax" ]]; then
+                  let qtyimax=qtyimax+1
+                fi
+                if [[ "$lct" =~ "$qremux" ]]; then
+	                let qtyremux=qtyremux+1
+                fi
+                if ! [[ "$lct" =~ "$qremux" && "$lct" =~ "$qimax" && "$lct" =~ "$qimax" ]]; then
+	                let qtydef=qtydef+1
+                fi
+              else
+                # Imprimiendo Items inexistentes al TMPFILE
+                echo "$line" >> "$tempfile"
+                
+                # Cantidad de items inexistentes
+                let noitem=noitem+1
+              fi
+              # Total items contados
+              let qty=qty+1
+            done < "$origen"
+            # List non-existent items
+            tempnoitem=$(cat "$tempfile")
+
+            # Sum items size in Kb and divide by 1024 for convert to Mb
+
+            grep . "$tempsumsize2" | paste -sd+ | bc -l > "$tempsumsize3"
+            echo "1024" >> "$tempsumsize3"
+            grep . "$tempsumsize3" | paste -sd/ | bc -l > "$tempsumsize4"
+            echo "1024" >> "$tempsumsize4"
+            grep . "$tempsumsize4" | paste -sd/ | bc -l > "$tempsumsize5"
+            tcgbsumconv=$(cat "$tempsumsize5")
+            tcgbsumsize=$(echo "scale=2;$tcgbsumconv" / "1"  | bc -l)
+            tcmbsumconv=$(cat "$tempsumsize4" | head -n1)
+            tcmbsumsize=$(echo "scale=2;$tcmbsumconv" / "1" | bc -l)
+            
+            # Descomentar para verificar los resultados *txt  con el reporte
+            # megabyte y gigabyte sum
+            #echo "$tcgbsumsize" > testergb.txt
+            #echo "$tcmbsumsize" > testermb.txt
+
+            # Cálculo cantidades, precios
+            let precio=qty4k*"$p4k"+qtyimax*"$pimax"+qtyremux*"$premux"
+            let qtydef=qtydef-qtyremux-qtyimax-qty4k
+            let pqtydef=qtydef*"$pdef"
+            let totality=precio+pqtydef
+
+            # cambio a peso argentino
+            ctarg=$(echo "scale=2;$totality" / "$argchg" | bc)
+            
+            # sub total
+            let st4k="$qty4k"*"$p4k"
+            let stimx="$qtyimax"*"$pimax"
+            let strmx="$qtyremux"*"$premux"
+            let stp="$qtydef"*"$pdef"
+
+            # --no-collapse
+            reporting=$(dialog --title "\Z0Lista de Pedido de Películas" \
+               --colors --ok-label "Continuar" --stdout --no-collapse \
+               --msgbox "\n
+ Items | Faltan | Tamaño Mb | Tamaño Gb\n
+-------+--------+-----------+-------------\n
+   $qty       $noitem      $tcmbsumsize       $tcgbsumsize\n
+==========================================\n
+ Calidad | Precio x  U. -  Total Bs.  \n
+---------+--------------------------------\n
+      4k   $p4k  bs  x  $qty4k  -  $st4k bs  \n
+    imax   $pimax bs  x  $qtyimax  -  $stimx bs\n
+   remux   $premux bs  x  $qtyremux  -  $strmx bs\n
+ =<1080p   $pdef  bs  x  $qtydef  -  $stp bs    \n
+------------------------------------------\n
+            Calidad Total: $precio Bs.\n
+            =<1080p Total: $pqtydef Bs \n
+             Precio Total: $totality Bs.\n
+                           ---------------\n
+    Peso Argentino Cambio: $argchg    \n
+     Peso Argentino Total: $ctarg Ars \n
+==========================================\n
+Item Pedidos:\n
+$pedido\n\n
+No encontrados: $noitem de $qty\n
+$tempnoitem
+==========================================\n
+@dryncsnsx powered by BIOS Tech" "$RMSGHEIGHT" "$RMSGWIDTH")
+
+# Volcando reporte a ./reports/<Cliente>_report.txt  para impresión
+
+            exchmenu=$(dialog --title "\Z0Creación de Reporte y Recibo" \
+              --colors --ok-label "Generar" --stdout \
+              --form "Rellene los campos para generar el recibo de pago" 12 42 4 \
+              "Nombre:" 1 1 "" 1 13 22 100 \
+              "Monto:" 2 1 "" 2 13 22 10 \
+              "Teléfono:" 3 1 "" 3 13 22 20 \
+              "Correo:" 4 1 "" 4 13 22 100 \
+              "Observación:" 5 1 "" 5 13 22 100)
+            if [[ "$?" = 0 ]]; then
+              echo "${exchmenu}" > "$tempexch"
+              nameexch=$(sed "1q;d" "$tempexch")
+              montoexch=$(sed "2q;d" "$tempexch")
+              phoneexch=$(sed "3q;d" "$tempexch")
+              mailexch=$(sed "4q;d" "$tempexch")
+              obsexch=$(sed "5q;d" "$tempexch")
+              dateexch=$(date "+%Y-%m-%d  %T")
+              rtnmoney=$(echo "$montoexch" - "$totality" | bc -l)
+
+              # Append Seller Info, Customer Date, Name client, Monto
+
+              echo -e "${sellerdetail}\n             REPORTE VIDEOS\nFecha: ${dateexch}\nNombre: ${nameexch}\nTeléfono: ${phoneexch}\nCorreo:${mailexch}\nObs: ${obsexch}" > "$clientreports""$nameexch"_report_video.txt
+
+              # Converting from multiline to one line with 'tr'
+
+              eofpedido=$(echo "$pedido" | tr "\n" ' ' )
+              eoftempnoitem=$(echo "$tempnoitem" | tr "\n" ' ')
+
+              toprint=$(cat <<EOF
+------------------------------------------
+ Items | Faltan | Tamaño Mb | Tamaño Gb
+-------+--------+-----------+-------------
+   $qty       $noitem      $tcmbsumsize       $tcgbsumsize
+------------------------------------------
+ Calidad | Precio x  U. -  Total Bs.  
+---------+--------------------------------
+      4k   $p4k  bs  x  $qty4k  -  $st4k bs  
+    imax   $pimax bs  x  $qtyimax  -  $stimx bs
+   remux   $premux bs  x  $qtyremux  -  $strmx bs
+ =<1080p   $pdef  bs  x  $qtydef  -  $stp bs    
+------------------------------------------
+            Calidad Total: $precio Bs.
+            =<1080p Total: $pqtydef Bs 
+             Precio Total: $totality Bs.
+                           ---------------
+           Monto Recibido: $montoexch Bs.
+                   Cambio: $rtnmoney Bs.
+                           ---------------
+    Peso Argentino Cambio: $argchg    
+     Peso Argentino Total: $ctarg Ars 
+------------------------------------------
+Item Pedidos: $eofpedido
+No encontrados: ${noitem} de ${qty} $eoftempnoitem
+==========================================
+$sellerfooter
+EOF
+)
+              echo "$toprint" >> "${clientreports}""${nameexch}"_report_video.txt
+              
+              # Adjusting with fold -w 42
+              
+              fold -w 42 "${clientreports}""${nameexch}"_report_video.txt > "${clientreports}""${nameexch}"_report_video_print.txt
+              vidreporting=$(cat "${clientreports}""${nameexch}"_report_video_print.txt)
+              dialog --title "\Z0REPORTE DE PELÍCULAS" \
+                --colors --ok-label "Continuar" --stdout --no-collapse \
+                --msgbox "$vidreporting" 0 0
+              print_report_yes_no "IMPRESIÓN DE REPORTE"
+              if [[ "$?" = 0 ]]; then
+                lp "${clientreports}""${nameexch}"_report_video_print.txt 
+                reports
+              else
+                reports
+              fi
+              reports
+            else
+              reportcancel "AVISO"
+              reports
+            fi
+          fi
+        else
+          reportcancel "AVISO"
+          reports
+        fi
+        break
+      ;;
+      "Música")
+        clear
+        origen=$(dialog --title "\Z0RUTA ARCHIVO"  \
+          --colors --ok-label "Seleccionar" --stdout \
+          --fselect "$dialogorig" "$FSHEIGHT" "$FSWIDTH")
+        if [[ "$?" = 0 ]]; then
+          if [[ ! -e "$origen" || -d "$origen" ]]; then
+            need_file_order "Warning"
+            reports
+          else
+            if [[ -z "$(cat ${origen})" ]]; then
+              empty_file_order "Warning"
+              reports
+            fi
+          
+            pedido=$(cat "$origen")
+            qtyaud=0
+
+            # ADDED FILTER NO ITEMS
+
+            noitem=0
+
+            # Delete temp files with Trap function when EXIT
+            tempxall
+
+            # Temporary file for check inexistent items
+            tempfile=$(mktemp -p"$TMPDIR")
+
+            # Temporary file for append sum file size
+
+            tempsumsize1=$(mktemp -p "$TMPDIR")
+            tempsumsize2=$(mktemp -p "$TMPDIR")
+            tempsumsize3=$(mktemp -p "$TMPDIR")
+            tempsumsize4=$(mktemp -p "$TMPDIR")
+            tempsumsize5=$(mktemp -p "$TMPDIR")
+
+            # Temporary file for exchange
+
+            tempexch=$(mktemp -p "$TMPDIR")
+
+            sed -i '/^[[:space:]]*$/d' "$origen"
+            lowtoupcase=$(sed -i "s/m/M/g" "$origen")
+            while read -r line
+            do
+              lct=$(cat "$mallrepos" | grep -iwm 1 "$line")
+              slct=$(cat "$smallrepos" | grep -iwm 1 "$line" > "$tempsumsize1"
+              cut -f1 "$tempsumsize1" >> "$tempsumsize2")
+
+              # Verifying if item exist
+              if [[ "$lct" =~ "$line" ]]; then
+                let qtyaud=qtyaud+1
+              else
+                # Imprimiendo Items inexistentes al TMPFILE
+                echo "$line" >> "$tempfile"
+
+                # Cantidad de items inexistentes
+                let noitem=noitem+1
+              fi
+              # Cantidad total existentes e inexistentes
+              let qty=qty+1
+            done < "$origen"
+            # List non-existent items
+            tempnoitem=$(cat "$tempfile") 
+            
+            # Sum items size in Kb and divide by 1024 for convert to Mb
+
+            grep . "$tempsumsize2" | paste -sd+ | bc -l > "$tempsumsize3"
+            echo "1024" >> "$tempsumsize3"
+            grep . "$tempsumsize3" | paste -sd/ | bc -l > "$tempsumsize4"
+            echo "1024" >> "$tempsumsize4"
+            grep . "$tempsumsize4" | paste -sd/ | bc -l > "$tempsumsize5"
+            tcgbsumconv=$(cat "$tempsumsize5")
+            tcgbsumsize=$(echo "scale=2;$tcgbsumconv" / "1" | bc -l)
+            tcmbsumconv=$(cat "$tempsumsize4" | head -n1)
+            tcmbsumsize=$(echo "scale=2;$tcmbsumconv" / "1" | bc -l)
+
+            # Descomentar para verificar los resultados *txt con el reporte
+            # megabyte and gigabyte sum
+            # echo "$tcgbsumsize" > testergb.txt
+            # echo "$tcmbsumsize" > testermb.txt
+            
+            # Cálcula cantidades, precios
+            let precio=qtyaud*"$palbum"
+
+
+            # cambio a peso argentino
+            ctarg=$(echo "scale=2;$precio" / "$argchg" | bc)
+
+            # sub total
+            let salbum=qtyaud*"$palbum"
+            
+            # --no-collapse
+            reporting=$(dialog --title "\Z0Lista de Pedido de Música" \
+              --colors --ok-label "Continuar" --stdout --no-collapse \
+              --msgbox "\n
+  tems | Faltan | Tamaño Mb | Tamaño Gb\n
+-------+--------+-----------+-------------\n
+   $qty       $noitem     $tcmbsumsize       $tcgbsumsize\n
+==========================================\n
+ Albums  | Precio x  U. -  Total Bs.  \n
+---------+--------------------------------\n
+      --   $palbum  bs  x  $qtyaud  -  $salbum bs  \n
+------------------------------------------\n
+             Precio Total: $precio Bs.\n
+                           ---------------\n
+    Peso Argentino Cambio: $argchg    \n
+     Peso Argentino Total: $ctarg Ars \n
+==========================================\n
+Item Pedidos:\n
+$pedido\n\n
+No encontrados: $noitem de $qty\n
+$tempnoitem
+==========================================\n
+@dryncsnsx powered by BIOS Tech" "$RMSGHEIGHT" "$RMSGWIDTH")
+
+# Volcando reporte a ./reports/<Cliente>_report_music.txt
+
+            exchmenu=$(dialog --title "\Z0Creación de Reporte y Recibo" \
+              --colors --ok-label "Generar" --stdout \
+              --form "Rellene los campos para generar el recibo de pago" 12 42 4 \
+              "Nombre:" 1 1 "" 1 13 22 100 \
+              "Monto:" 2 1 "" 2 13 22 10 \
+              "Teléfono:" 3 1 "" 3 13 22 20 \
+              "Correo:" 4 1 "" 4 13 22 100 \
+              "Observación:" 5 1 "" 5 13 22 100)
+            if [[ "$?" = 0 ]]; then
+              echo "${exchmenu}" > "$tempexch"
+              nameexch=$(sed "1q;d" "$tempexch")
+              montoexch=$(sed "2q;d" "$tempexch")
+              phoneexch=$(sed "3q;d" "$tempexch")
+              mailexch=$(sed "4q;d" "$tempexch")
+              obsexch=$(sed "5q;d" "$tempexch")
+              dateexch=$(date "+%Y-%m-%d  %T")
+              rtnmoney=$(echo "$montoexch" - "$precio" | bc -l)
+
+              # Append Seller Info, Customer Date, Name client, Monto
+
+              echo -e "${sellerdetail}\n             REPORTE AUDIOS\nFecha: ${dateexch}\nNombre: ${nameexch}\nTeléfono: ${phoneexch}\nCorreo:${mailexch}\nObs: ${obsexch}" > "$clientreports""$nameexch"_report_music.txt
+
+              # Converting from multiline to one line with 'tr'
+
+              eofpedido=$(echo "$pedido" | tr "\n" ' ' )
+              eoftempnoitem=$(echo "$tempnoitem" | tr "\n" ' ')
+
+              toprint=$(cat <<EOF
+------------------------------------------
+ Items | Faltan | Tamaño Mb | Tamaño Gb
+-------+--------+-----------+-------------
+   $qty       $noitem     $tcmbsumsize       $tcgbsumsize
+------------------------------------------
+ Calidad | Precio x  U. -  Total Bs.  
+---------+--------------------------------
+      --   $palbum  bs  x  $qtyaud  -  $salbum bs  
+------------------------------------------
+             Precio Total: $precio Bs.
+                           ---------------
+           Monto Recibido: $montoexch Bs.
+                   Cambio: $rtnmoney Bs.
+                           ---------------
+    Peso Argentino Cambio: $argchg    
+     Peso Argentino Total: $ctarg Ars 
+------------------------------------------
+Item Pedidos: $eofpedido
+No encontrados: ${noitem} de ${qty} $eoftempnoitem
+==========================================
+$sellerfooter
+EOF
+)
+              echo "$toprint" >> "${clientreports}""${nameexch}"_report_music.txt
+              
+              # Adjusting with fold -w 42
+              
+              fold -w 42 "${clientreports}""${nameexch}"_report_music.txt > "${clientreports}""${nameexch}"_report_music_print.txt
+              vidreporting=$(cat "${clientreports}""${nameexch}"_report_music_print.txt)
+              dialog --title "\Z0REPORTE DE MÚSICA" \
+                --colors --ok-label "Continuar" --stdout --no-collapse \
+                --msgbox "$vidreporting" 0 0
+              print_report_yes_no "IMPRESIÓN DE REPORTE"
+              if [[ "$?" = 0 ]]; then
+                lp "${clientreports}""${nameexch}"_report_music_print.txt 
+                reports
+              else
+                reports
+              fi
+              reports
+            else
+              reportcancel "AVISO"
+              reports
+            fi
+          fi
+        else
+          reportcancel "AVISO"
+          reports
+        fi
+
+        break
+      ;;
+      "Juegos")
+        # Report juegos
+        clear
+        origen=$(dialog --title "\Z0RUTA ARCHIVO" \
+          --colors --ok-label "Seleccionar" --stdout \
+          --fselect "$dialogorig" "$FSHEIGHT" "$FSWIDTH")
+        if [[ "$?" = 0 ]]; then
+          if [[ ! -e "$origen" || -d "$origen" ]]; then
+            need_file_order "Warning"
+            reports
+          else
+            if [[ -z "$(cat ${origen})" ]]; then
+              empty_file_order "Warning"
+              reports
+            fi
+            
+            pedido=$(cat "$origen")
+
+            # ADDED FILTER QUALITY
+            
+            qtyg=0
+            qtyg1=0
+            qtyg2=0
+            qtyg3=0
+            qtyg4=0
+            qtyg5=0
+
+            # ADDED FILTER NO ITEMS
+            
+            noitem=0
+
+            # FOR FILTER UPPERCASE QUALITIES MUST BE WRITING IN THE FILES NAMES LIKE
+            # 'audio-file-4G-J1234/'
+            # 'audio-file-8G-J44/'
+            # 'audio-file-12G-J3/'
+
+            qg1="4G"
+            qg2="8G"
+            qg3="12G"
+            qg4="16G"
+            qg5="20G"
+
+            # Delete temp files with Trap function when EXIT
+            tempxall
+
+            # Temporary file for check inexistent items
+            tempfile=$(mktemp -p "$TMPDIR")
+
+            # Temporary file for append sum file size
+
+            tempsumsize1=$(mktemp -p "$TMPDIR")
+            tempsumsize2=$(mktemp -p "$TMPDIR")
+            tempsumsize3=$(mktemp -p "$TMPDIR")
+            tempsumsize4=$(mktemp -p "$TMPDIR")
+            tempsumsize5=$(mktemp -p "$TMPDIR")
+
+            # Temporary file for exchange
+
+            tempexch=$(mktemp -p "$TMPDIR")
+
+            sed -i '/^[[:space:]]*$/d' "$origen"
+            lowtoupcase=$(sed -i "s/j/J/g" "$origen")
+            while read -r line
+            do
+              lct=$(cat "$jallrepos" | grep -iwm 1 "$line")
+              slct=$(cat "$sjallrepos" | grep -iwm 1 "$line" > "$tempsumsize1")
+              cut -f1 "$tempsumsize1" >> "$tempsumsize2"
+
+              # Verifying if item exist
+              if [[ "$lct" =~ "$line" ]]; then
+                if [[ "$lct" =~ "$qg1" ]]; then
+                  let qtyg1=qtyg1+1
+                fi
+                if [[ "$lct" =~ "$qg2" ]]; then
+                  let qtyg2=qtyg2+1
+                fi
+                if [[ "$lct" =~ "$qg3" ]]; then
+	                let qtyg3=qtyg3+1
+                fi
+                if [[ "$lct" =~ "$qg4" ]]; then
+                  let qtyg4=qtyg4+1
+                fi
+                if [[ "$lct" =~ "$qg5" ]]; then
+	                let qtyg5=qtyg5+1
+                fi
+              else
+                # Imprimiendo Items inexistentes al TMPFILE
+                echo "$line" >> "$tempfile"
+                
+                # Cantidad de items inexistentes
+                let noitem=noitem+1
+              fi
+              # Total items contados
+              let qtyg=qtyg+1
+            done < "$origen"
+            # List non-existent items
+            tempnoitem=$(cat "$tempfile")
+
+            # Sum items size in Kb and divide by 1024 for convert to Mb
+
+            grep . "$tempsumsize2" | paste -sd+ | bc -l > "$tempsumsize3"
+            echo "1024" >> "$tempsumsize3"
+            grep . "$tempsumsize3" | paste -sd/ | bc -l > "$tempsumsize4"
+            echo "1024" >> "$tempsumsize4"
+            grep . "$tempsumsize4" | paste -sd/ | bc -l > "$tempsumsize5"
+            tcgbsumconv=$(cat "$tempsumsize5")
+            tcgbsumsize=$(echo "scale=2;$tcgbsumconv" / "1"  | bc -l)
+            tcmbsumconv=$(cat "$tempsumsize4" | head -n1)
+            tcmbsumsize=$(echo "scale=2;$tcmbsumconv" / "1" | bc -l)
+            
+            # Descomentar para verificar los resultados *txt  con el reporte
+            # megabyte y gigabyte sum
+            #echo "$tcgbsumsize" > testergb.txt
+            #echo "$tcmbsumsize" > testermb.txt
+
+            # Cálculo cantidades, precios
+
+            let ptotal=qtyg1*"$pgame1"+qtyg2*"$pgame2"+qtyg3*"$pgame3"+qtyg4*"$pgame4"+qtyg5*"$pgame5"
+
+            # cambio a peso argentino
+            ctarg=$(echo "scale=2;$ptotal" / "$argchg" | bc)
+            
+            # sub total
+
+            let stg1="$qtyg1"*"$pgame1"
+            let stg2="$qtyg2"*"$pgame2"
+            let stg3="$qtyg3"*"$pgame3"
+            let stg4="$qtyg4"*"$pgame4"
+            let stg5="$qtyg5"*"$pgame5"
+
+            # --no-collapse
+            reporting=$(dialog --title "\Z0Lista de Pedido de Juegos" \
+               --colors --ok-label "Continuar" --stdout --no-collapse \
+               --msgbox "\n
+ Items | Faltan | Tamaño Mb | Tamaño Gb\n
+-------+--------+-----------+-------------\n
+   $qtyg       $noitem      $tcmbsumsize       $tcgbsumsize\n
+==========================================\n
+  Tamaño | Precio x  U. -  Total Bs.  \n
+---------+--------------------------------\n
+    4 Gb   $pgame1  bs  x  $qtyg1  -  $stg1 bs\n
+    8 Gb   $pgame2  bs  x  $qtyg2  -  $stg2 bs\n
+   12 Gb   $pgame3 bs  x  $qtyg3  -  $stg3 bs\n
+   16 Gb   $pgame4 bs  x  $qtyg4  -  $stg4 bs\n
+  +20 Gb   $pgame5 bs  x  $qtyg5  -  $stg5 bs\n
+------------------------------------------\n
+             Precio Total: $ptotal Bs.\n
+                           ---------------\n
+    Peso Argentino Cambio: $argchg    \n
+     Peso Argentino Total: $ctarg Ars \n
+==========================================\n
+Item Pedidos:\n
+$pedido\n\n
+No encontrados: $noitem de $qtyg\n
+$tempnoitem
+==========================================\n
+@dryncsnsx powered by BIOS Tech" "$RMSGHEIGHT" "$RMSGWIDTH")
+
+# Volcando reporte a ./reports/<Cliente>_report.txt  para impresión
+
+            exchmenu=$(dialog --title "\Z0Creación de Reporte y Recibo" \
+              --colors --ok-label "Generar" --stdout \
+              --form "Rellene los campos para generar el recibo de pago" 12 42 4 \
+              "Nombre:" 1 1 "" 1 13 22 100 \
+              "Monto:" 2 1 "" 2 13 22 10 \
+              "Teléfono:" 3 1 "" 3 13 22 20 \
+              "Correo:" 4 1 "" 4 13 22 100 \
+              "Observación:" 5 1 "" 5 13 22 100)
+            if [[ "$?" = 0 ]]; then
+              echo "${exchmenu}" > "$tempexch"
+              nameexch=$(sed "1q;d" "$tempexch")
+              montoexch=$(sed "2q;d" "$tempexch")
+              phoneexch=$(sed "3q;d" "$tempexch")
+              mailexch=$(sed "4q;d" "$tempexch")
+              obsexch=$(sed "5q;d" "$tempexch")
+              dateexch=$(date "+%Y-%m-%d  %T")
+              rtnmoney=$(echo "$montoexch" - "$ptotal" | bc -l)
+
+              # Append Seller Info, Customer Date, Name client, Monto
+
+              echo -e "${sellerdetail}\n             REPORTE JUEGOS\nFecha: ${dateexch}\nNombre: ${nameexch}\nTeléfono: ${phoneexch}\nCorreo:${mailexch}\nObs: ${obsexch}" > "$clientreports""$nameexch"_report_juegos.txt
+
+              # Converting from multiline to one line with 'tr'
+
+              eofpedido=$(echo "$pedido" | tr "\n" ' ' )
+              eoftempnoitem=$(echo "$tempnoitem" | tr "\n" ' ')
+
+              toprint=$(cat <<EOF
+------------------------------------------
+ Items | Faltan | Tamaño Mb | Tamaño Gb
+-------+--------+-----------+-------------
+   $qtyg       $noitem      $tcmbsumsize       $tcgbsumsize
+------------------------------------------
+  Tamaño | Precio x  U. -  Total Bs.  
+---------+--------------------------------
+    4 Gb   $pgame1  bs  x  $qtyg1  -  $stg1 bs
+    8 Gb   $pgame2  bs  x  $qtyg2  -  $stg2 bs
+   12 Gb   $pgame3 bs  x  $qtyg3  -  $stg3 bs
+   16 Gb   $pgame4 bs  x  $qtyg4  -  $stg4 bs
+  +20 Gb   $pgame5 bs  x  $qtyg5  -  $stg5 bs
+------------------------------------------
+             Precio Total: $ptotal Bs.
+                           ---------------
+           Monto Recibido: $montoexch Bs.
+                   Cambio: $rtnmoney Bs.
+                           ---------------
+    Peso Argentino Cambio: $argchg    
+     Peso Argentino Total: $ctarg Ars 
+------------------------------------------
+Item Pedidos: $eofpedido
+No encontrados: ${noitem} de ${qtyg} $eoftempnoitem
+==========================================
+$sellerfooter
+EOF
+)
+              echo "$toprint" >> "${clientreports}""${nameexch}"_report_juegos.txt
+              
+              # Adjusting with fold -w 42
+              
+              fold -w 42 "${clientreports}""${nameexch}"_report_juegos.txt > "${clientreports}""${nameexch}"_report_juegos_print.txt
+              vidreporting=$(cat "${clientreports}""${nameexch}"_report_juegos_print.txt)
+              dialog --title "\Z0REPORTE DE JUEGOS" \
+                --colors --ok-label "Continuar" --stdout --no-collapse \
+                --msgbox "$vidreporting" 0 0
+              print_report_yes_no "IMPRESIÓN DE REPORTE"
+              if [[ "$?" = 0 ]]; then
+                lp "${clientreports}""${nameexch}"_report_juegos_print.txt 
+                reports
+              else
+                reports
+              fi
+              reports
+            else
+              reportcancel "AVISO"
+              reports
+            fi
+          fi
+        else
+          reportcancel "AVISO"
+          reports
+        fi
+
+        break
+      ;;
+      "Apps")
+        # Report apps
+        clear
+        origen=$(dialog --title "\Z0RUTA ARCHIVO" \
+          --colors --ok-label "Seleccionar" --stdout \
+          --fselect "$dialogorig" "$FSHEIGHT" "$FSWIDTH")
+        if [[ "$?" = 0 ]]; then
+          if [[ ! -e "$origen" || -d "$origen" ]]; then
+            need_file_order "Warning"
+            reports
+          else
+            if [[ -z "$(cat ${origen})" ]]; then
+              empty_file_order "Warning"
+              reports
+            fi
+            
+            pedido=$(cat "$origen")
+
+            # ADDED FILTER QUALITY
+            
+            qtya=0
+            qtya1=0
+            qtya2=0
+            qtya3=0
+            qtya4=0
+            qtya5=0
+
+            # ADDED FILTER NO ITEMS
+            
+            noitem=0
+
+            # FOR FILTER UPPERCASE QUALITIES MUST BE WRITING IN THE FILES NAMES LIKE
+            # 'apps-file-4G-A1234/'
+            # 'apps-file-8G-A44/'
+            # 'apps-file-12G-A3/'
+
+            qa1="4G"
+            qa2="8G"
+            qa3="12G"
+            qa4="16G"
+            qa5="20G"
+
+            # Delete temp files with Trap function when EXIT
+            tempxall
+
+            # Temporary file for check inexistent items
+            tempfile=$(mktemp -p "$TMPDIR")
+
+            # Temporary file for append sum file size
+
+            tempsumsize1=$(mktemp -p "$TMPDIR")
+            tempsumsize2=$(mktemp -p "$TMPDIR")
+            tempsumsize3=$(mktemp -p "$TMPDIR")
+            tempsumsize4=$(mktemp -p "$TMPDIR")
+            tempsumsize5=$(mktemp -p "$TMPDIR")
+
+            # Temporary file for exchange
+
+            tempexch=$(mktemp -p "$TMPDIR")
+
+            sed -i '/^[[:space:]]*$/d' "$origen"
+            lowtoupcase=$(sed -i "s/a/A/g" "$origen")
+            while read -r line
+            do
+              lct=$(cat "$aallrepos" | grep -iwm 1 "$line")
+              slct=$(cat "$saallrepos" | grep -iwm 1 "$line" > "$tempsumsize1")
+              cut -f1 "$tempsumsize1" >> "$tempsumsize2"
+
+              # Verifying if item exist
+              if [[ "$lct" =~ "$line" ]]; then
+                if [[ "$lct" =~ "$qa1" ]]; then
+                  let qtya1=qtya1+1
+                fi
+                if [[ "$lct" =~ "$qa2" ]]; then
+                  let qtya2=qtya2+1
+                fi
+                if [[ "$lct" =~ "$qa3" ]]; then
+	                let qtya3=qtya3+1
+                fi
+                if [[ "$lct" =~ "$qa4" ]]; then
+                  let qtya4=qtya4+1
+                fi
+                if [[ "$lct" =~ "$qa5" ]]; then
+	                let qtya5=qtya5+1
+                fi
+              else
+                # Imprimiendo Items inexistentes al TMPFILE
+                echo "$line" >> "$tempfile"
+                
+                # Cantidad de items inexistentes
+                let noitem=noitem+1
+              fi
+              # Total items contados
+              let qtya=qtya+1
+            done < "$origen"
+            # List non-existent items
+            tempnoitem=$(cat "$tempfile")
+
+            # Sum items size in Kb and divide by 1024 for convert to Mb
+
+            grep . "$tempsumsize2" | paste -sd+ | bc -l > "$tempsumsize3"
+            echo "1024" >> "$tempsumsize3"
+            grep . "$tempsumsize3" | paste -sd/ | bc -l > "$tempsumsize4"
+            echo "1024" >> "$tempsumsize4"
+            grep . "$tempsumsize4" | paste -sd/ | bc -l > "$tempsumsize5"
+            tcgbsumconv=$(cat "$tempsumsize5")
+            tcgbsumsize=$(echo "scale=2;$tcgbsumconv" / "1"  | bc -l)
+            tcmbsumconv=$(cat "$tempsumsize4" | head -n1)
+            tcmbsumsize=$(echo "scale=2;$tcmbsumconv" / "1" | bc -l)
+            
+            # Descomentar para verificar los resultados *txt  con el reporte
+            # megabyte y gigabyte sum
+            #echo "$tcgbsumsize" > testergb.txt
+            #echo "$tcmbsumsize" > testermb.txt
+
+            # Cálculo cantidades, precios
+
+            let ptotal=qtya1*"$papp1"+qtya2*"$papp2"+qtya3*"$papp3"+qtya4*"$papp4"+qtya5*"$papp5"
+
+            # cambio a peso argentino
+            ctarg=$(echo "scale=2;$ptotal" / "$argchg" | bc)
+            
+            # sub total
+
+            let sta1="$qtya1"*"$papp1"
+            let sta2="$qtya2"*"$papp2"
+            let sta3="$qtya3"*"$papp3"
+            let sta4="$qtya4"*"$papp4"
+            let sta5="$qtya5"*"$papp5"
+
+            # --no-collapse
+            reporting=$(dialog --title "\Z0Lista de Pedido de Apps" \
+               --colors --ok-label "Continuar" --stdout --no-collapse \
+               --msgbox "\n
+ Items | Faltan | Tamaño Mb | Tamaño Gb\n
+-------+--------+-----------+-------------\n
+   $qtya       $noitem      $tcmbsumsize       $tcgbsumsize\n
+==========================================\n
+  Tamaño | Precio x  U. -  Total Bs.  \n
+---------+--------------------------------\n
+    4 Gb   $papp1  bs  x  $qtya1  -  $sta1 bs\n
+    8 Gb   $papp2  bs  x  $qtya2  -  $sta2 bs\n
+   12 Gb   $papp3 bs  x  $qtya3  -  $sta3 bs\n
+   16 Gb   $papp4 bs  x  $qtya4  -  $sta4 bs\n
+  +20 Gb   $papp5 bs  x  $qtya5  -  $sta5 bs\n
+------------------------------------------\n
+             Precio Total: $ptotal Bs.\n
+                           ---------------\n
+    Peso Argentino Cambio: $argchg    \n
+     Peso Argentino Total: $ctarg Ars \n
+==========================================\n
+Item Pedidos:\n
+$pedido\n\n
+No encontrados: $noitem de $qtya\n
+$tempnoitem
+==========================================\n
+@dryncsnsx powered by BIOS Tech" "$RMSGHEIGHT" "$RMSGWIDTH")
+
+# Volcando reporte a ./reports/<Cliente>_report.txt  para impresión
+
+            exchmenu=$(dialog --title "\Z0Creación de Reporte y Recibo" \
+              --colors --ok-label "Generar" --stdout \
+              --form "Rellene los campos para generar el recibo de pago" 12 42 4 \
+              "Nombre:" 1 1 "" 1 13 22 100 \
+              "Monto:" 2 1 "" 2 13 22 10 \
+              "Teléfono:" 3 1 "" 3 13 22 20 \
+              "Correo:" 4 1 "" 4 13 22 100 \
+              "Observación:" 5 1 "" 5 13 22 100)
+            if [[ "$?" = 0 ]]; then
+              echo "${exchmenu}" > "$tempexch"
+              nameexch=$(sed "1q;d" "$tempexch")
+              montoexch=$(sed "2q;d" "$tempexch")
+              phoneexch=$(sed "3q;d" "$tempexch")
+              mailexch=$(sed "4q;d" "$tempexch")
+              obsexch=$(sed "5q;d" "$tempexch")
+              dateexch=$(date "+%Y-%m-%d  %T")
+              rtnmoney=$(echo "$montoexch" - "$ptotal" | bc -l)
+
+              # Append Seller Info, Customer Date, Name client, Monto
+
+              echo -e "${sellerdetail}\n             REPORTE APPS\nFecha: ${dateexch}\nNombre: ${nameexch}\nTeléfono: ${phoneexch}\nCorreo:${mailexch}\nObs: ${obsexch}" > "$clientreports""$nameexch"_report_apps.txt
+
+              # Converting from multiline to one line with 'tr'
+
+              eofpedido=$(echo "$pedido" | tr "\n" ' ' )
+              eoftempnoitem=$(echo "$tempnoitem" | tr "\n" ' ')
+
+              toprint=$(cat <<EOF
+------------------------------------------
+ Items | Faltan | Tamaño Mb | Tamaño Gb
+-------+--------+-----------+-------------
+   $qtya       $noitem      $tcmbsumsize       $tcgbsumsize
+------------------------------------------
+  Tamaño | Precio x  U. -  Total Bs.  
+---------+--------------------------------
+    4 Gb   $papp1  bs  x  $qtya1  -  $sta1 bs
+    8 Gb   $papp2  bs  x  $qtya2  -  $sta2 bs
+   12 Gb   $papp3 bs  x  $qtya3  -  $sta3 bs
+   16 Gb   $papp4 bs  x  $qtya4  -  $sta4 bs
+  +20 Gb   $papp5 bs  x  $qtya5  -  $sta5 bs
+------------------------------------------
+             Precio Total: $ptotal Bs.
+                           ---------------
+           Monto Recibido: $montoexch Bs.
+                   Cambio: $rtnmoney Bs.
+                           ---------------
+    Peso Argentino Cambio: $argchg    
+     Peso Argentino Total: $ctarg Ars 
+------------------------------------------
+Item Pedidos: $eofpedido
+No encontrados: ${noitem} de ${qtya} $eoftempnoitem
+==========================================
+$sellerfooter
+EOF
+)
+              echo "$toprint" >> "${clientreports}""${nameexch}"_report_apps.txt
+              
+              # Adjusting with fold -w 42
+              
+              fold -w 42 "${clientreports}""${nameexch}"_report_apps.txt > "${clientreports}""${nameexch}"_report_apps_print.txt
+              vidreporting=$(cat "${clientreports}""${nameexch}"_report_apps_print.txt)
+              dialog --title "\Z0REPORTE DE APPS" \
+                --colors --ok-label "Continuar" --stdout --no-collapse \
+                --msgbox "$vidreporting" 0 0
+              print_report_yes_no "IMPRESIÓN DE REPORTE"
+              if [[ "$?" = 0 ]]; then
+                lp "${clientreports}""${nameexch}"_report_apps_print.txt 
+                reports
+              else
+                reports
+              fi
+              reports
+            else
+              reportcancel "AVISO"
+              reports
+            fi
+          fi
+        else
+          reportcancel "AVISO"
+          reports
+        fi
+
+        break
+      ;;
+      "Libros")
+        # Report libros
+        clear
+        origen=$(dialog --title "\Z0RUTA ARCHIVO" \
+          --colors --ok-label "Seleccionar" --stdout \
+          --fselect "$dialogorig" "$FSHEIGHT" "$FSWIDTH")
+        if [[ "$?" = 0 ]]; then
+          if [[ ! -e "$origen" || -d "$origen" ]]; then
+            need_file_order "Warning"
+            reports
+          else
+            if [[ -z "$(cat ${origen})" ]]; then
+              empty_file_order "Warning"
+              reports
+            fi
+            
+            pedido=$(cat "$origen")
+            qty=0
+            qtyl=0
+
+            # ADDED FILTER NO ITEMS
+            
+            noitem=0
+
+            # Delete temp files with Trap function when EXIT
+            tempxall
+
+            # Temporary file for check inexistent items
+            tempfile=$(mktemp -p "$TMPDIR")
+
+            # Temporary file for append sum file size
+
+            tempsumsize1=$(mktemp -p "$TMPDIR")
+            tempsumsize2=$(mktemp -p "$TMPDIR")
+            tempsumsize3=$(mktemp -p "$TMPDIR")
+            tempsumsize4=$(mktemp -p "$TMPDIR")
+            tempsumsize5=$(mktemp -p "$TMPDIR")
+
+            # Temporary file for exchange
+
+            tempexch=$(mktemp -p "$TMPDIR")
+
+            sed -i '/^[[:space:]]*$/d' "$origen"
+            lowtoupcase=$(sed -i "s/l/L/g" "$origen")
+            while read -r line
+            do
+              lct=$(cat "$lallrepos" | grep -iwm 1 "$line")
+              slct=$(cat "$slallrepos" | grep -iwm 1 "$line" > "$tempsumsize1")
+              cut -f1 "$tempsumsize1" >> "$tempsumsize2"
+
+              # Verifying if item exist
+              if [[ "$lct" =~ "$line" ]]; then
+                let qtyl=qtyl+1
+              else
+                # Imprimiendo Items inexistentes al TMPFILE
+                echo "$line" >> "$tempfile"
+                
+                # Cantidad de items inexistentes
+                let noitem=noitem+1
+              fi
+              # Total items contados
+              let qty=qty+1
+            done < "$origen"
+            # List non-existent items
+            tempnoitem=$(cat "$tempfile")
+
+            # Sum items size in Kb and divide by 1024 for convert to Mb
+
+            grep . "$tempsumsize2" | paste -sd+ | bc -l > "$tempsumsize3"
+            echo "1024" >> "$tempsumsize3"
+            grep . "$tempsumsize3" | paste -sd/ | bc -l > "$tempsumsize4"
+            echo "1024" >> "$tempsumsize4"
+            grep . "$tempsumsize4" | paste -sd/ | bc -l > "$tempsumsize5"
+            tcgbsumconv=$(cat "$tempsumsize5")
+            tcgbsumsize=$(echo "scale=2;$tcgbsumconv" / "1"  | bc -l)
+            tcmbsumconv=$(cat "$tempsumsize4" | head -n1)
+            tcmbsumsize=$(echo "scale=2;$tcmbsumconv" / "1" | bc -l)
+            
+            # Descomentar para verificar los resultados *txt  con el reporte
+            # megabyte y gigabyte sum
+            #echo "$tcgbsumsize" > testergb.txt
+            #echo "$tcmbsumsize" > testermb.txt
+
+            # Cálculo cantidades, precios
+            let precio=qtyl*"$pbook"
+
+            # cambio a peso argentino
+            ctarg=$(echo "scale=2;$precio" / "$argchg" | bc)
+            
+            # sub total
+            let sbook="$qtyl"*"$pbook"
+
+            # --no-collapse
+            reporting=$(dialog --title "\Z0Lista de Pedido de Libros" \
+               --colors --ok-label "Continuar" --stdout --no-collapse \
+               --msgbox "\n
+ Items | Faltan | Tamaño Mb | Tamaño Gb\n
+-------+--------+-----------+-------------\n
+   $qty       $noitem      $tcmbsumsize       $tcgbsumsize\n
+==========================================\n
+  Libros | Precio x  U. -  Total Bs.  \n
+---------+--------------------------------\n
+      --   $pbook  bs  x  $qtyl  -  $sbook bs  \n
+------------------------------------------\n
+             Precio Total: $precio Bs.\n
+                           ---------------\n
+    Peso Argentino Cambio: $argchg    \n
+     Peso Argentino Total: $ctarg Ars \n
+==========================================\n
+Item Pedidos:\n
+$pedido\n\n
+No encontrados: $noitem de $qty\n
+$tempnoitem
+==========================================\n
+@dryncsnsx powered by BIOS Tech" "$RMSGHEIGHT" "$RMSGWIDTH")
+
+# Volcando reporte a ./reports/<Cliente>_report.txt  para impresión
+
+            exchmenu=$(dialog --title "\Z0Creación de Reporte y Recibo" \
+              --colors --ok-label "Generar" --stdout \
+              --form "Rellene los campos para generar el recibo de pago" 12 42 4 \
+              "Nombre:" 1 1 "" 1 13 22 100 \
+              "Monto:" 2 1 "" 2 13 22 10 \
+              "Teléfono:" 3 1 "" 3 13 22 20 \
+              "Correo:" 4 1 "" 4 13 22 100 \
+              "Observación:" 5 1 "" 5 13 22 100)
+            if [[ "$?" = 0 ]]; then
+              echo "${exchmenu}" > "$tempexch"
+              nameexch=$(sed "1q;d" "$tempexch")
+              montoexch=$(sed "2q;d" "$tempexch")
+              phoneexch=$(sed "3q;d" "$tempexch")
+              mailexch=$(sed "4q;d" "$tempexch")
+              obsexch=$(sed "5q;d" "$tempexch")
+              dateexch=$(date "+%Y-%m-%d  %T")
+              rtnmoney=$(echo "$montoexch" - "$precio" | bc -l)
+
+              # Append Seller Info, Customer Date, Name client, Monto
+
+              echo -e "${sellerdetail}\n             REPORTE LIBROS\nFecha: ${dateexch}\nNombre: ${nameexch}\nTeléfono: ${phoneexch}\nCorreo:${mailexch}\nObs: ${obsexch}" > "$clientreports""$nameexch"_report_libros.txt
+
+              # Converting from multiline to one line with 'tr'
+
+              eofpedido=$(echo "$pedido" | tr "\n" ' ' )
+              eoftempnoitem=$(echo "$tempnoitem" | tr "\n" ' ')
+
+              toprint=$(cat <<EOF
+------------------------------------------
+ Items | Faltan | Tamaño Mb | Tamaño Gb
+-------+--------+-----------+-------------
+   $qty       $noitem      $tcmbsumsize       $tcgbsumsize
+------------------------------------------
+  Libros | Precio x  U. -  Total Bs.  
+---------+--------------------------------
+      --   $pbook  bs  x  $qtyl  -  $sbook bs  
+------------------------------------------
+             Precio Total: $precio Bs.
+                           ---------------
+           Monto Recibido: $montoexch Bs.
+                   Cambio: $rtnmoney Bs.
+                           ---------------
+    Peso Argentino Cambio: $argchg    
+     Peso Argentino Total: $ctarg Ars 
+------------------------------------------
+Item Pedidos: $eofpedido
+No encontrados: ${noitem} de ${qty} $eoftempnoitem
+==========================================
+$sellerfooter
+EOF
+)
+              echo "$toprint" >> "${clientreports}""${nameexch}"_report_libros.txt
+              
+              # Adjusting with fold -w 42
+              
+              fold -w 42 "${clientreports}""${nameexch}"_report_libros.txt > "${clientreports}""${nameexch}"_report_libros_print.txt
+              vidreporting=$(cat "${clientreports}""${nameexch}"_report_libros_print.txt)
+              dialog --title "\Z0REPORTE DE LIBROS" \
+                --colors --ok-label "Continuar" --stdout --no-collapse \
+                --msgbox "$vidreporting" 0 0
+              print_report_yes_no "IMPRESIÓN DE REPORTE"
+              if [[ "$?" = 0 ]]; then
+                lp "${clientreports}""${nameexch}"_report_libros_print.txt 
+                reports
+              else
+                reports
+              fi
+              reports
+            else
+              reportcancel "AVISO"
+              reports
+            fi
+          fi
+        else
+          reportcancel "AVISO"
+          reports
+        fi
+
+        break
+      ;;
+      "Comics")
+        # Report comics
+        clear
+        origen=$(dialog --title "\Z0RUTA ARCHIVO" \
+          --colors --ok-label "Seleccionar" --stdout \
+          --fselect "$dialogorig" "$FSHEIGHT" "$FSWIDTH")
+        if [[ "$?" = 0 ]]; then
+          if [[ ! -e "$origen" || -d "$origen" ]]; then
+            need_file_order "Warning"
+            reports
+          else
+            if [[ -z "$(cat ${origen})" ]]; then
+              empty_file_order "Warning"
+              reports
+            fi
+            
+            pedido=$(cat "$origen")
+            qty=0
+            qtyc=0
+
+            # ADDED FILTER NO ITEMS
+            
+            noitem=0
+
+            # Delete temp files with Trap function when EXIT
+            tempxall
+
+            # Temporary file for check inexistent items
+            tempfile=$(mktemp -p "$TMPDIR")
+
+            # Temporary file for append sum file size
+
+            tempsumsize1=$(mktemp -p "$TMPDIR")
+            tempsumsize2=$(mktemp -p "$TMPDIR")
+            tempsumsize3=$(mktemp -p "$TMPDIR")
+            tempsumsize4=$(mktemp -p "$TMPDIR")
+            tempsumsize5=$(mktemp -p "$TMPDIR")
+
+            # Temporary file for exchange
+
+            tempexch=$(mktemp -p "$TMPDIR")
+
+            sed -i '/^[[:space:]]*$/d' "$origen"
+            lowtoupcase=$(sed -i "s/c/C/g" "$origen")
+            while read -r line
+            do
+              lct=$(cat "$callrepos" | grep -iwm 1 "$line")
+              slct=$(cat "$scallrepos" | grep -iwm 1 "$line" > "$tempsumsize1")
+              cut -f1 "$tempsumsize1" >> "$tempsumsize2"
+
+              # Verifying if item exist
+              if [[ "$lct" =~ "$line" ]]; then
+                let qtyc=qtyc+1
+              else
+                # Imprimiendo Items inexistentes al TMPFILE
+                echo "$line" >> "$tempfile"
+                
+                # Cantidad de items inexistentes
+                let noitem=noitem+1
+              fi
+              # Total items contados
+              let qty=qty+1
+            done < "$origen"
+            # List non-existent items
+            tempnoitem=$(cat "$tempfile")
+
+            # Sum items size in Kb and divide by 1024 for convert to Mb
+
+            grep . "$tempsumsize2" | paste -sd+ | bc -l > "$tempsumsize3"
+            echo "1024" >> "$tempsumsize3"
+            grep . "$tempsumsize3" | paste -sd/ | bc -l > "$tempsumsize4"
+            echo "1024" >> "$tempsumsize4"
+            grep . "$tempsumsize4" | paste -sd/ | bc -l > "$tempsumsize5"
+            tcgbsumconv=$(cat "$tempsumsize5")
+            tcgbsumsize=$(echo "scale=2;$tcgbsumconv" / "1"  | bc -l)
+            tcmbsumconv=$(cat "$tempsumsize4" | head -n1)
+            tcmbsumsize=$(echo "scale=2;$tcmbsumconv" / "1" | bc -l)
+            
+            # Descomentar para verificar los resultados *txt  con el reporte
+            # megabyte y gigabyte sum
+            #echo "$tcgbsumsize" > testergb.txt
+            #echo "$tcmbsumsize" > testermb.txt
+
+            # Cálculo cantidades, precios
+            let precio=qtyc*"$pcomic"
+
+            # cambio a peso argentino
+            ctarg=$(echo "scale=2;$precio" / "$argchg" | bc)
+            
+            # sub total
+            let scomic="$qtyc"*"$pcomic"
+
+            # --no-collapse
+            reporting=$(dialog --title "\Z0Lista de Pedido de Comics" \
+               --colors --ok-label "Continuar" --stdout --no-collapse \
+               --msgbox "\n
+ Items | Faltan | Tamaño Mb | Tamaño Gb\n
+-------+--------+-----------+-------------\n
+   $qty       $noitem      $tcmbsumsize       $tcgbsumsize\n
+==========================================\n
+  Comics | Precio x  U. -  Total Bs.  \n
+---------+--------------------------------\n
+      --   $pcomic  bs  x  $qtyc  -  $scomic bs  \n
+------------------------------------------\n
+             Precio Total: $precio Bs.\n
+                           ---------------\n
+    Peso Argentino Cambio: $argchg    \n
+     Peso Argentino Total: $ctarg Ars \n
+==========================================\n
+Item Pedidos:\n
+$pedido\n\n
+No encontrados: $noitem de $qty\n
+$tempnoitem
+==========================================\n
+@dryncsnsx powered by BIOS Tech" "$RMSGHEIGHT" "$RMSGWIDTH")
+
+# Volcando reporte a ./reports/<Cliente>_report.txt  para impresión
+
+            exchmenu=$(dialog --title "\Z0Creación de Reporte y Recibo" \
+              --colors --ok-label "Generar" --stdout \
+              --form "Rellene los campos para generar el recibo de pago" 12 42 4 \
+              "Nombre:" 1 1 "" 1 13 22 100 \
+              "Monto:" 2 1 "" 2 13 22 10 \
+              "Teléfono:" 3 1 "" 3 13 22 20 \
+              "Correo:" 4 1 "" 4 13 22 100 \
+              "Observación:" 5 1 "" 5 13 22 100)
+            if [[ "$?" = 0 ]]; then
+              echo "${exchmenu}" > "$tempexch"
+              nameexch=$(sed "1q;d" "$tempexch")
+              montoexch=$(sed "2q;d" "$tempexch")
+              phoneexch=$(sed "3q;d" "$tempexch")
+              mailexch=$(sed "4q;d" "$tempexch")
+              obsexch=$(sed "5q;d" "$tempexch")
+              dateexch=$(date "+%Y-%m-%d  %T")
+              rtnmoney=$(echo "$montoexch" - "$precio" | bc -l)
+
+              # Append Seller Info, Customer Date, Name client, Monto
+
+              echo -e "${sellerdetail}\n             REPORTE COMICS\nFecha: ${dateexch}\nNombre: ${nameexch}\nTeléfono: ${phoneexch}\nCorreo:${mailexch}\nObs: ${obsexch}" > "$clientreports""$nameexch"_report_comics.txt
+
+              # Converting from multiline to one line with 'tr'
+
+              eofpedido=$(echo "$pedido" | tr "\n" ' ' )
+              eoftempnoitem=$(echo "$tempnoitem" | tr "\n" ' ')
+
+              toprint=$(cat <<EOF
+------------------------------------------
+ Items | Faltan | Tamaño Mb | Tamaño Gb
+-------+--------+-----------+-------------
+   $qty       $noitem      $tcmbsumsize       $tcgbsumsize
+------------------------------------------
+  Comics | Precio x  U. -  Total Bs.  
+---------+--------------------------------
+      --   $pcomic  bs  x  $qtyc  -  $scomic bs  
+------------------------------------------
+             Precio Total: $precio Bs.
+                           ---------------
+           Monto Recibido: $montoexch Bs.
+                   Cambio: $rtnmoney Bs.
+                           ---------------
+    Peso Argentino Cambio: $argchg    
+     Peso Argentino Total: $ctarg Ars 
+------------------------------------------
+Item Pedidos: $eofpedido
+No encontrados: ${noitem} de ${qty} $eoftempnoitem
+==========================================
+$sellerfooter
+EOF
+)
+              echo "$toprint" >> "${clientreports}""${nameexch}"_report_comics.txt
+              
+              # Adjusting with fold -w 42
+              
+              fold -w 42 "${clientreports}""${nameexch}"_report_comics.txt > "${clientreports}""${nameexch}"_report_comics_print.txt
+              vidreporting=$(cat "${clientreports}""${nameexch}"_report_comics_print.txt)
+              dialog --ok-label "Continuar" --title "\Z0REPORTE DE COMICS" \
+                --colors --stdout --no-collapse \
+                --msgbox "$vidreporting" 0 0
+              print_report_yes_no "IMPRESIÓN DE REPORTE"
+              if [[ "$?" = 0 ]]; then
+                lp "${clientreports}""${nameexch}"_report_comics_print.txt 
+                reports
+              else
+                reports
+              fi
+              reports
+            else
+              reportcancel "AVISO"
+              reports
+            fi
+          fi
+        else
+          reportcancel "AVISO"
+          reports
+        fi
+        break
+      ;;
+      "Ver Log de Archivos Copiados")
+        clear
+	      if [[ -f "$copiadoslog" ]]; then
+	        dialog --title "\Z0Log Copiados" \
+            --colors --clear --ok-label "Cerrar" --stdout \
+            --textbox "$copiadoslog" 0 0
+          reports
+        else
+          dialog --title "\Z0Warning" \
+            --colors --ok-label "Cerrar" --stdout \
+            --msgbox "Archivo de log (copiados.log) de copias no encontrado.\n\nRevise la configuración mdialog_conf" 0 0
+          reports
+        fi
+        break
+	    ;;
+      "Ver Log de Archivos de Copias Fallidas")
+        clear
+	      if [[ -f "$fallidoslog" ]]; then
+	        dialog --title "\Z0Log Fallidos" \
+            --colors --clear --ok-label "Cerrar" --stdout \
+            --textbox "$fallidoslog" 0 0
+          reports
+        else
+          dialog --title "\Z0Warning" \
+            --colors --ok-label "Cerrar" --stdout \
+            msgbox "Archivo de log (fallidos.log) de copias no encontrado.\n\nRevise la configuración mdialog_conf" 00
+          reports
+        fi
+        break
+	    ;;
+      "Volver al Menú Principal")
+        main
+        break
+      ;;
+      *)
+        echo "Invalid choice"
+      ;;
+    esac
+  done
+}
+
+#################
+# Copy functions
+#################
+
+movies () {
+# Copy videos by id
+clear
+counterc=0
+counterf=0
+regdate=$(date)
+cliente=$(dialog --title "\Z0DATOS CLIENTE" \
+  --colors --ok-label "Guardar" --stdout \
+  --inputbox "Nombre y Apellido (Prefijo):" 0 0)
+if [[ "$?" = 0 ]]; then
+  customerdatareg
+  destino=$(dialog --title "\Z0SELECCIONAR CARPETA DESTINO" \
+    --colors --ok-label "Seleccionar" --stdout \
+    --fselect "$dialogdest" "$FSHEIGHT" "$FSWIDTH")
+  if [[ "$?" = 0 ]]; then
+    # Checking if target directory exist
+    if ! [[ -e "$destino" ]]; then
+      msgnotexist "$destino"
+      main
+    fi
+    origen=$(dialog --title "\Z0RUTA LISTA (ej. fcid.txt)" \
+      --colors --ok-label "Seleccionar" --stdout \
+      --fselect "$dialogorig" "$FSHEIGHT" "$FSWIDTH")
+    if [[ "$?" = 0 ]]; then
+      if ! [[ -e "$origen" ]]; then
+        msgnotexist "$origen"
+        main
+      fi
       sed -i '/^[[:space:]]*$/d' "$origen"
       lowtoupcase=$(sed -i "s/f/F/g" "$origen")
-      exec < "$origen"
       while read -r line
       do
-	lct=$(cat "$fallrepos" | grep -iwm 1 "$line") # Imprime con -i ignorando mayúsucalas, -w imprime la lína que coincide con la palabra entera, -m imprime la línea con la primer coincidencia
-	lct2=$(grep -Piowm 1 "$line" "$fallrepos") # Extráe solo la palabra lct(F####) con -o usando regex de Pearl con -P, -m 1 para que imprima la primera coincidencia y no replique los repetidos en el archivo fallrepos
-	if [ "$lct2" == "$line" ]; then
-	  fuente=$(grep -Piwm 1 "$line" "$fallrepos") # Imprimiendo la línea completa de fallrepos que contiene $line
-	  rsync -ah --info=progress2 --log-file="$rsynclog" "$fuente" "$destino"
-	  copiados=$(echo -e "  * $line" >> "$copiadoslog")
-	  let counterc=counterc+1
-	else
-	  fallidos=$(echo -e "  * $line" >> "$fallidoslog")
-	  let counterf=counterf+1
-	fi
-      done
+        lct=$(cat "$fallrepos" | grep -iwm 1 "$line") 
+
+        # Imprime con -i ignorando mayúsucalas, -w imprime la línea que coincide
+        # con la palabra entera, -m 1 detiene la impresión después de la primer coincidencia
+        # y no replique repetidos en fallrepos
+
+        lct2=$(grep -Piowm 1 "$line" "$fallrepos")
+
+        # Extráe solo la palabra lct(F####) con -o usando regex de Pearl
+        # con -P, -m 1 detiene la impresión después de la primer coincidencia y no replique
+        # los repetidos en el archivo fallrepos
+
+        if [ "$lct2" = "$line" ]; then
+          fuente=$(grep -Piwm 1 "$line" "$fallrepos")
+
+          # Imprimiendo la línea completa de fallrepos que contiene $line
+          
+          rsync -ah --info=progress2 --log-file="$rsynclog" "$fuente" "$destino"
+          copiados=$(echo -e "  * $line" >> "$copiadoslog")
+          let counterc=counterc+1
+        else
+          fallidos=$(echo -e "  * $line" >> "$fallidoslog")
+          let counterf=counterf+1
+        fi
+      done < "$origen"
       let totalpedido=counterc+counterf
+      cp "$logo" "$destino"
+      cp "$urlbf" "$destino"
       pedido=$(cat "$origen")
-      dialog --title "Copia Finalizada" \
-      --msgbox "\n
-	  ------------ Rutas ------------\n
-        Lista ID's  : $origen\n
-            Destino : $destino\n
-	  ------------ Items ------------\n
-       ----------------+-----\n
-        Total Pedidos  |  $totalpedido   \n
-       ----------------+-----\n
-        Total Copiados |  $counterc   \n
-       ----------------+-----\n
-        total Fallidos |  $counterf   \n
-       ----------------+-----\n
+      dialog --title "\Z0COPIA FINALIZADA" \
+        --colors --ok-label "Continuar" --stdout \
+        --msgbox "\n
+  ------------ Rutas ------------\n
+      Lista ID's  : $origen\n
+          Destino : $destino\n
+  ------------ Items ------------\n
+     ----------------+-----\n
+      Total Pedidos  |  $totalpedido   \n
+     ----------------+-----\n
+      Total Copiados |  $counterc   \n
+     ----------------+-----\n
+      total Fallidos |  $counterf   \n
+     ----------------+-----\n
+    Items Pedidos:\n
+      $pedido\n\n" 0 0
+      clear
+      pcopiadoslog=$(cat -n "$copiadoslog")
+      dialog --title "\Z0Informe" \
+        --colors --ok-label "Cerrar" --stdout \
+        --msgbox "$pcopiadoslog" 0 0
+      return 
+    else
+      dialog --title "\Z0Warning" \
+        --colors --ok-label "Cerrar" --stdout \
+        --msgbox "Cancelado" 0 0
+    fi
+  else
+    dialog --title "\Z0Warning" \
+      --colors --ok-label "Cerrar" --stdout \
+      --msgbox "Cancelado" 0 0
+  fi
+
+else
+  dialog --title "\Z0Warning" \
+    --colors --ok-label "Cerrar" --stdout \
+    --msgbox "Cancelado" 0 0
+fi
+main
+}
+
+music () {
+# Copy music by id
+clear
+counterc=0
+counterf=0
+regdate=$(date)
+cliente=$(dialog --title "\Z0DATOS CLIENTE" \
+  --colors --ok-label "Guardar" --stdout \
+  --inputbox "Nombre y Apellido (Prefijo):" 0 0)
+if [[ "$?" = 0 ]]; then
+  customerdatareg
+  destino=$(dialog --title "\Z0SELECCIONAR CARPETA DESTINO" \
+    --colors --ok-label "Seleccionar" --stdout \
+    --fselect "$dialogdest" "$FSHEIGHT" "$FSWIDTH")
+  if [[ "$?" = 0 ]]; then
+    # Checking if target directory exist
+    if ! [[ -e "$destino" ]]; then
+      msgnotexist "$destino"
+      main
+    fi
+    origen=$(dialog --title "\Z0RUTA LISTA (ej. mcid.txt)" \
+      --colors --ok-label "Seleccionar" --stdout \
+      --fselect "$dialogorig" "$FSHEIGHT" "$FSWIDTH")
+      if [[ "$?" = 0 ]]; then
+        if ! [[ -e "$origen" ]]; then
+          msgnotexist "$origen"
+          main
+        fi
+        sed -i '/^[[:space:]]*$/d' "$origen"
+        lowtoupcase=$(sed -i "s/m/M/g" "$origen")
+        while read -r line
+        do
+          lct=$(cat "$mallrepos" | grep -iwm 1 "$line")
+          lct2=$(grep -Piowm 1 "$line" "$mallrepos")
+          if [ "$lct2" = "$line" ]; then
+            fuente=$(grep -Piwm 1 "$line" "$mallrepos")
+            rsync -ah --info=progress2 --log-file="$rsynclog" "$fuente" "$destino"
+            copiados=$(echo -e "  * $line" >> "$copiadoslog")
+            let counterc=counterc+1
+          else
+            fallidos=$(echo -e "  * $line" >> "$fallidoslog")
+            let counterf=counterf+1
+          fi
+        done < "$origen"
+        let totalpedido=counterc+counterf
+        cp "$logo" "$destino"
+        cp "$urlbm" "$destino"
+        pedido=$(cat "$origen")
+        dialog --title "\Z0COPIA FINALIZADA" \
+          --colors --ok-label "Continuar" --stdout \
+          --msgbox "\n
+  ------------ Rutas ------------\n
+      Lista ID's  : $origen\n
+          Destino : $destino\n
+  ------------ Items ------------\n
+     ----------------+-----\n
+      Total Pedidos  |  $totalpedido   \n
+     ----------------+-----\n
+      Total Copiados |  $counterc   \n
+     ----------------+-----\n
+      total Fallidos |  $counterf   \n
+     ----------------+-----\n
       Items Pedidos:\n
       $pedido\n\n" 0 0
-      exec cat -n "$copiadoslog"
-      ;;
-    4)
-# MUSIC BY FOLDER ALBUM
-      counterc=0
-      counterf=0
-      regdate=$(date)
-      cliente=$(dialog --stdout --title "Datos Cliente:" --inputbox "Nombre y Apellido (Prefijo):" 0 0)
-      logcopy=$(echo -e "\n\n--Cliente: $cliente - $regdate" >> "$copiadoslog")
-      logrip=$(echo -e "\n\n--Cliente: $cliente - $regdate" >> "$fallidoslog")
-      destino=$(dialog --stdout --title "Seleccionar Carpeta Destino:" --fselect "$dialogdest" 45 125)
-      origen=$(dialog --stdout --title "Ruta Lista (ej. mcid.txt)" --fselect "$dialogorig" 45 65)
-      sed -i '/^[[:space:]]*$/d' "$origen"
-      lowtoupcase=$(sed -i "s/m/M/g" "$origen")
-      exec < "$origen"
-      while read -r line
-      do
-	lct=$(cat "$mallrepos" | grep -iwm 1 "$line")
-	lct2=$(grep -Piowm 1 "$line" "$mallrepos") # Extráe solo la palabra lct(M####) con -o usando regex de Pearl con -P, -m 1 para que imprima la primera coincidencia y no replique los repetidos en el archivo mallrepos
-	if [ "$lct2" == "$line" ]; then
-	  fuente=$(grep -Piwm 1 "$line" "$mallrepos")
-	  rsync -ah --info=progress2 --log-file="$rsynclog" "$fuente" "$destino"
-	  copiados=$(echo -e "  * $line" >> "$copiadoslog")
-	  let counterc=counterc+1
-	else
-	  fallidos=$(echo -e "  * $line" >> "$fallidoslog")
-	  let counterf=counterf+1
-	fi
-      done
-      let totalpedido=counterc+counterf
-      pedido=$(cat "$origen")
-      dialog --title "Copia Finalizada" \
-      --msgbox "\n
-    6)
-	  ------------ Rutas ------------\n
-        Lista ID's  : $origen\n
-            Destino : $destino\n
-	  ------------ Items ------------\n
-       ----------------+-----\n
-        Total Pedidos  |  $totalpedido   \n
-       ----------------+-----\n
-        Total Copiados |  $counterc   \n
-       ----------------+-----\n
-        total Fallidos |  $counterf   \n
-       ----------------+-----\n
-      Items Pedidos:\n
-      $pedido\n\n" 0 0
-      exec cat -n "$copiadoslog"
-      ;;
-    5)
-# JUEGOS BY FOLDER    
-      counterc=0
-      counterf=0
-      regdate=$(date)
-      cliente=$(dialog --stdout --title "Datos Cliente:" --inputbox "Nombre y Apellido (Prefijo):" 0 0)
-      logcopy=$(echo -e "\n\n--Cliente: $cliente - $regdate" >> "$copiadoslog")
-      logrip=$(echo -e "\n\n--Cliente: $cliente - $regdate" >> "$fallidoslog")
-      destino=$(dialog --stdout --title "Seleccionar Carpeta Destino:" --fselect "$dialogdest" 45 125)
-      origen=$(dialog --stdout --title "Ruta Lista (ej. jcid.txt)" --fselect "$dialogorig" 45 65)
+        clear
+        pcopiadoslog=$(cat -n "$copiadoslog")
+        dialog --ok-label "Cerrar" --title "\Z0Informe" \
+          --colors --stdout \
+          --msgbox "$pcopiadoslog" 0 0
+        return
+      else
+        dialog --title "\Z0Warning" \
+          --colors --ok-label "Cerrar" --stdout \
+          --msgbox "Cancelado" 0 0
+      fi
+  else
+    dialog --title "\Z0Warning" \
+      --colors --ok-label "Cerrar" --stdout \
+      --msgbox "Cancelado" 0 0
+  fi
+else
+  dialog --title "\Z0Warning" \
+    --colors --ok-label "Cerrar" --stdout \
+    --msgbox "Cancelado" 0 0
+fi
+main
+}
+
+games () {
+# Copy games by id
+clear
+counterc=0
+counterf=0
+regdate=$(date)
+cliente=$(dialog --title "\Z0DATOS CLIENTE" \
+  --colors --ok-label "Guardar" --stdout \
+  --inputbox "Nombre y Apellido (Prefijo):" 0 0)
+if [[ "$?" = 0 ]]; then
+  customerdatareg
+  destino=$(dialog --title "\Z0SELECCIONAR CARPETA DESTINO" \
+    --colors --ok-label "Seleccionar" --stdout \
+    --fselect "$dialogdest" "$FSHEIGHT" "$FSWIDTH")
+  if [[ "$?" = 0 ]]; then
+  # Checking if target directory exist
+  if ! [[ -e "$destino" ]]; then
+    msgnotexist "$destino"
+    main
+  fi
+  origen=$(dialog --title "\Z0Ruta Lista (ej. jcid.txt)" \
+    --colors --ok-label "Seleccionar" --stdout \
+    --fselect "$dialogorig" "$FSHEIGHT" "$FSWIDTH")
+    if [[ "$?" = 0 ]]; then
+      if ! [[ -e "$origen" ]]; then
+        msgnotexist "$origen"
+        main
+      fi
       sed -i '/^[[:space:]]*$/d' "$origen"
       lowtoupcase=$(sed -i "s/j/J/g" "$origen")
-      exec < "$origen"
       while read -r line
-	do
-	lct=$(cat "$jallrepos" | grep -iwm 1 "$line")
-	lct2=$(grep -Piowm 1 "$line+" "$jallrepos") # Extráe solo la palabra lct(J####) con -o usando regex de Pearl con -P, -m 1 para que imprima la primera coincidencia y no replique los repetidos en el archivo jallrepos
-	if [ "$lct2" == "$line" ]; then
-	  fuente=$(grep -Piwm 1 "$line" "$jallrepos")
-	  rsync -ah --info=progress2 --log-file="$rsynclog" "$fuente" "$destino"
-	  copiados=$(echo -e "  * $line" >> "$copiadoslog")
-	  let counterc=counterc+1
-	else
-	  fallidos=$(echo -e "  * $line" >> "$fallidoslog")
-	  let counterf=counterf+1
-	fi
-      done
+      do
+        lct=$(cat "$jallrepos" | grep -iwm 1 "$line")
+        lct2=$(grep -Piowm 1 "$line" "$jallrepos")
+        if [ "$lct2" = "$line" ]; then
+          fuente=$(grep -Piwm 1 "$line" "$jallrepos")
+          rsync -ah --info=progress2 --log-file="$rsynclog" "$fuente" "$destino"
+          copiados=$(echo -e "  * $line" >> "$copiadoslog")
+          let counterc=counterc+1
+        else
+          fallidos=$(echo -e "  * $line" >> "$fallidoslog")
+          let counterf=counterf+1
+        fi
+      done < "$origen"
       let totalpedido=counterc+counterf
+      cp "$logo" "$destino"
+      cp "$urlbm" "$destino"
       pedido=$(cat "$origen")
-      dialog --title "Copia Finalizada" \
-      --msgbox "\n
-	  ------------ Rutas ------------\n
-        Lista ID's  : $origen\n
-            Destino : $destino\n
-	  ------------ Items ------------\n
-       ----------------+-----\n
-        Total Pedidos  |  $totalpedido   \n
-       ----------------+-----\n
-        Total Copiados |  $counterc   \n
-       ----------------+-----\n
-        total Fallidos |  $counterf   \n
-       ----------------+-----\n
+      dialog --title "\Z0COPIA FINALIZADA" \
+        --colors --ok-label "Continuar" --stdout \
+        --msgbox "\n
+  ------------ Rutas ------------\n
+      Lista ID's  : $origen\n
+          Destino : $destino\n
+  ------------ Items ------------\n
+     ----------------+-----\n
+      Total Pedidos  |  $totalpedido   \n
+     ----------------+-----\n
+      Total Copiados |  $counterc   \n
+     ----------------+-----\n
+      total Fallidos |  $counterf   \n
+     ----------------+-----\n
       Items Pedidos:\n
       $pedido\n\n" 0 0
-      exec cat -n "$copiadoslog"
-      ;;
-    6)
-# APPS BY FOLDER
-      counterc=0
-      counterf=0
-      regdate=$(date)
-      cliente=$(dialog --stdout --title "Datos Cliente:" --inputbox "Nombre y Apellido (Prefijo):" 0 0)
-      logcopy=$(echo -e "\n\n--Cliente: $cliente - $regdate" >> "$copiadoslog")
-      logrip=$(echo -e "\n\n--Cliente: $cliente - $regdate" >> "$fallidoslog")
-      destino=$(dialog --stdout --title "Seleccionar Carpeta Destino:" --fselect "$dialogdest" 45 125)
-      origen=$(dialog --stdout --title "Ruta Lista (ej. acid.txt)" --fselect "$dialogorig" 45 65)
+      clear
+      pcopiadoslog=$(cat -n "$copiadoslog")
+      dialog --title "\Z0Informe" \
+        --colors --ok-label "Cerrar" --stdout \
+        --msgbox "$pcopiadoslog" 0 0
+      return
+    else
+      dialog --title "\Z0Warning" \
+        --colors --ok-label "Cerrar" --stdout \
+        --msgbox "Cancelado" 0 0
+    fi
+  else
+    dialog --title "\Z0Warning" \
+      --colors --ok-label "Cerrar" --stdout \
+      --msgbox "Cancelado" 0 0
+  fi
+else
+  dialog --title "\Z0Warning" \
+    --colors --ok-label "Cerrar" --stdout \
+    --msgbox "Cancelado" 0 0
+fi
+main
+}
+
+apps () {
+# Copy apps by id
+clear
+counterc=0
+counterf=0
+regdate=$(date)
+cliente=$(dialog --title "\Z0DATOS CLIENTE" \
+  --colors --ok-label "Guardar" --stdout \
+  --inputbox "Nombre y Apellido (Prefijo):" 0 0)
+if [[ "$?" = 0 ]]; then
+  customerdatareg
+  destino=$(dialog --title "\Z0SELECCIONAR CARPETA DESTINO" \
+    --colors --ok-label "Seleccionar" --stdout \
+    --fselect "$dialogdest" "$FSHEIGHT" "$FSWIDTH")
+  if [[ "$?" = 0 ]]; then
+  # Checking if target directory exist
+  if ! [[ -e "$destino" ]]; then
+    msgnotexist "$destino"
+    main
+  fi
+  origen=$(dialog --title "\Z0RUTA LISTA (ej. mcid.txt)" \
+    --colors --ok-label "Seleccionar" --stdout \
+    --fselect "$dialogorig" "$FSHEIGHT" "$FSWIDTH")
+    if [[ "$?" = 0 ]]; then
+      if ! [[ -e "$origen" ]]; then
+        msgnotexist "$origen"
+        main
+      fi
       sed -i '/^[[:space:]]*$/d' "$origen"
       lowtoupcase=$(sed -i "s/a/A/g" "$origen")
-      exec < "$origen"
       while read -r line
       do
-	lct=$(cat "$aallrepos" | grep -iwm 1 "$line")
-	lct2=$(grep -Piowm 1 "$line+" "$aallrepos") # Extráe solo la palabra lct(A####) con -o usando regex de Pearl con -P, -m 1 para que imprima la primera coincidencia y no replique los repetidos en el archivo aallrepos
-	if [ "$lct2" == "$line" ]; then
-	  fuente=$(grep -Piwm 1 "$line" "$aallrepos")
-	  rsync -ah --info=progress2 --log-file="$rsynclog" "$fuente" "$destino"
-	  copiados=$(echo -e "  * $line" >> "$copiadoslog")
-	  let counterc=counterc+1
-	else
-	  fallidos=$(echo -e "  * $line" >> "$fallidoslog")
-	  let counterf=counterf+1
-	fi
-      done
+        lct=$(cat "$allrepos" | grep -iwm 1 "$line")
+        lct2=$(grep -Piowm 1 "$line" "$aallrepos")
+        if [ "$lct2" = "$line" ]; then
+          fuente=$(grep -Piwm 1 "$line" "$aallrepos")
+          rsync -ah --info=progress2 --log-file="$rsynclog" "$fuente" "$destino"
+          copiados=$(echo -e "  * $line" >> "$copiadoslog")
+          let counterc=counterc+1
+        else
+          fallidos=$(echo -e "  * $line" >> "$fallidoslog")
+          let counterf=counterf+1
+        fi
+      done < "$origen"
       let totalpedido=counterc+counterf
+      cp "$logo" "$destino"
+      cp "$urlbm" "$destino"
       pedido=$(cat "$origen")
-      dialog --title "Copia Finalizada" \
-      --msgbox "\n
-	  ------------ Rutas ------------\n
-        Lista ID's  : $origen\n
-            Destino : $destino\n
-	  ------------ Items ------------\n
-       ----------------+-----\n
-        Total Pedidos  |  $totalpedido   \n
-       ----------------+-----\n
-        Total Copiados |  $counterc   \n
-       ----------------+-----\n
-        total Fallidos |  $counterf   \n
-       ----------------+-----\n
+      dialog --title "\Z0COPIA FINALIZADA" \
+        --colors --ok-label "Continuar" --stdout \
+        --msgbox "\n
+  ------------ Rutas ------------\n
+      Lista ID's  : $origen\n
+          Destino : $destino\n
+  ------------ Items ------------\n
+     ----------------+-----\n
+      Total Pedidos  |  $totalpedido   \n
+     ----------------+-----\n
+      Total Copiados |  $counterc   \n
+     ----------------+-----\n
+      total Fallidos |  $counterf   \n
+     ----------------+-----\n
       Items Pedidos:\n
       $pedido\n\n" 0 0
-      exec cat -n "$copiadoslog"
-      ;;
-    7)
-# LIBROS BY BOOKs ID
-      counterc=0
-      counterf=0
-      regdate=$(date)
-      cliente=$(dialog --stdout --title "Datos Cliente:" --inputbox "Nombre y Apellido (Prefijo):" 0 0)
-      logcopy=$(echo -e "\n\n--Cliente: $cliente - $regdate" >> "$copiadoslog")
-      logrip=$(echo -e "\n\n--Cliente: $cliente - $regdate" >> "$fallidoslog")
-      destino=$(dialog --stdout --title "Seleccionar Carpeta Destino:" --fselect "$dialogdest" 45 125)
-      origen=$(dialog --stdout --title "Ruta Lista (ej. lcid.txt)" --fselect "$dialogorig" 45 65)
+      clear
+      pcopiadoslog=$(cat -n "$copiadoslog")
+      dialog --title "\Z0Informe" \
+        --colors --ok-label "Cerrar" --stdout \
+        --msgbox "$pcopiadoslog" 0 0
+      return
+    else
+      dialog --title "\Z0Warning" \
+        --colors --ok-label "Cerrar" --stdout \
+        --msgbox "Cancelado" 0 0
+    fi
+  else
+    dialog --title "\Z0Warning" \
+      --colors --ok-label "Cerrar" --stdout \
+      --msgbox "Cancelado" 0 0
+  fi
+else
+  dialog --title "\Z0Warning" \
+    --colors --ok-label "Cerrar" --stdout \
+    --msgbox "Cancelado" 0 0
+fi
+main
+}
+
+books () {
+# Copy books by id
+clear
+counterc=0
+counterf=0
+regdate=$(date)
+cliente=$(dialog --title "\Z0DATOS CLIENTE" \
+  --colors --ok-label "Guardar" --stdout \
+  --inputbox "Nombre y Apellido (Prefijo):" 0 0)
+if [[ "$?" = 0 ]]; then
+  customerdatareg
+  destino=$(dialog --title "\Z0SELECCIONAR CARPETA DESTINO" \
+    --colors --ok-label "Seleccionar" --stdout \
+    --fselect "$dialogdest" "$FSHEIGHT" "$FSWIDTH")
+  if [[ "$?" = 0 ]]; then
+    # Checking if target directory exist
+    if ! [[ -e "$destino" ]]; then
+      msgnotexist "$destino"
+      main
+    fi
+    origen=$(dialog --title "\Z0RUTA LISTA (ej. lcid.txt)" \
+      --colors --ok-label "Seleccionar" --stdout \
+      --fselect "$dialogorig" "$FSHEIGHT" "$FSWIDTH")
+    if [[ "$?" = 0 ]]; then
+      if ! [[ -e "$origen" ]]; then
+        msgnotexist "$origen"
+        main
+      fi
       sed -i '/^[[:space:]]*$/d' "$origen"
       lowtoupcase=$(sed -i "s/l/L/g" "$origen")
-      exec < "$origen"
       while read -r line
       do
-	lct=$(cat "$lallrepos" | grep -iwm 1 "$line")
-	lct2=$(grep -Piowm 1 "$line+" "$lallrepos") # Extráe solo la palabra lct(L####) con -o usando regex de Pearl con -P, -m 1 para que imprima la primera coincidencia y no replique los repetidos en el archivo lallrepos
-	if [ "$lct2" == "$line" ]; then
-	  fuente=$(grep -Piwm 1 "$line" "$lallrepos")
-	  rsync -ah --info=progress2 --log-file="$rsynclog" "$fuente" "$destino"
-	  copiados=$(echo -e "  * $line" >> "$copiadoslog")
-	  let counterc=counterc+1
-	else
-	  fallidos=$(echo -e "  * $line" >> "$fallidoslog")
-	  let counterf=counterf+1
-	fi
-      done
+        lct=$(cat "$lallrepos" | grep -iwm 1 "$line") 
+
+        # Imprime con -i ignorando mayúsucalas, -w imprime la línea que coincide
+        # con la palabra entera, -m 1 detiene la impresión después de la primer coincidencia
+        # y no replique repetidos en fallrepos
+
+        lct2=$(grep -Piowm 1 "$line" "$lallrepos")
+
+        # Extráe solo la palabra lct(F####) con -o usando regex de Pearl
+        # con -P, -m 1 detiene la impresión después de la primer coincidencia y no replique
+        # los repetidos en el archivo fallrepos
+
+        if [ "$lct2" = "$line" ]; then
+          fuente=$(grep -Piwm 1 "$line" "$lallrepos")
+
+          # Imprimiendo la línea completa de fallrepos que contiene $line
+          
+          rsync -ah --info=progress2 --log-file="$rsynclog" "$fuente" "$destino"
+          copiados=$(echo -e "  * $line" >> "$copiadoslog")
+          let counterc=counterc+1
+        else
+          fallidos=$(echo -e "  * $line" >> "$fallidoslog")
+          let counterf=counterf+1
+        fi
+      done < "$origen"
       let totalpedido=counterc+counterf
+      cp "$logo" "$destino"
+      cp "$urlbf" "$destino"
       pedido=$(cat "$origen")
-      dialog --title "Copia Finalizada" \
-      --msgbox "\n
-	  ------------ Rutas ------------\n
-        Lista ID's  : $origen\n
-            Destino : $destino\n
-	  ------------ Items ------------\n
-       ----------------+-----\n
-        Total Pedidos  |  $totalpedido   \n
-       ----------------+-----\n
-        Total Copiados |  $counterc   \n
-       ----------------+-----\n
-        total Fallidos |  $counterf   \n
-       ----------------+-----\n
-      Items Pedidos:\n
+      dialog --title "\Z0COPIA FINALIZADA" \
+        --colors --ok-label "Continuar" --stdout \
+        --msgbox "\n
+  ------------ Rutas ------------\n
+      Lista ID's  : $origen\n
+          Destino : $destino\n
+  ------------ Items ------------\n
+     ----------------+-----\n
+      Total Pedidos  |  $totalpedido   \n
+     ----------------+-----\n
+      Total Copiados |  $counterc   \n
+     ----------------+-----\n
+      total Fallidos |  $counterf   \n
+     ----------------+-----\n
+    Items Pedidos:\n
       $pedido\n\n" 0 0
-      exec cat -n "$copiadoslog"
-      ;;
-    8)
-# COMICS BY COMICs ID
-      counterc=0
-      counterf=0
-      regdate=$(date)
-      cliente=$(dialog --stdout --title "Datos Cliente:" --inputbox "Nombre y Apellido (Prefijo):" 0 0)
-      logcopy=$(echo -e "\n\n--Cliente: $cliente - $regdate" >> "$copiadoslog")
-      logrip=$(echo -e "\n\n--Cliente: $cliente - $regdate" >> "$fallidoslog")
-      destino=$(dialog --stdout --title "Seleccionar Carpeta Destino:" --fselect "$dialogdest" 45 125)
-      origen=$(dialog --stdout --title "Ruta Lista (ej. ccid.txt)" --fselect "$dialogorig" 45 65)
+      clear
+      pcopiadoslog=$(cat -n "$copiadoslog")
+      dialog --title "\Z0Informe" \
+        --colors --ok-label "Cerrar" --stdout \
+        --msgbox "$pcopiadoslog" 0 0
+      return 
+    else
+      dialog --title "\Z0Warning" \
+        --colors --ok-label "Cerrar" --stdout \
+        --msgbox "Cancelado" 0 0
+    fi
+  else
+    dialog --title "\Z0Warning" \
+      --colors --ok-label "Cerrar" --stdout \
+      --msgbox "Cancelado" 0 0
+  fi
+
+else
+  dialog --title "\Z0Warning" \
+    --colors --ok-label "Cerrar" --stdout \
+    --msgbox "Cancelado" 0 0
+fi
+main
+}
+
+comics () {
+# COMICS  BY ID
+clear
+counterc=0
+counterf=0
+regdate=$(date)
+cliente=$(dialog --title "\Z0DATOS CLIENTE" \
+  --colors --ok-label "Guardar" --stdout \
+  --inputbox "Nombre y Apellido (Prefijo):" 0 0)
+if [[ "$?" = 0 ]]; then
+  customerdatareg
+  destino=$(dialog --title "\Z0SELECCIONAR CARPETA DESTINO" \
+    --colors --ok-label "Seleccionar" --stdout \
+    --fselect "$dialogdest" "$FSHEIGHT" "$FSWIDTH")
+  if [[ "$?" = 0 ]]; then
+    # Checking if target directory exist
+    if ! [[ -e "$destino" ]]; then
+      msgnotexist "$destino"
+      main
+    fi
+    origen=$(dialog --title "\Z0RUTA LISTA (ej. ccid.txt)" \
+      --colors --ok-label "Seleccionar" --stdout \
+      --fselect "$dialogorig" "$FSHEIGHT" "$FSWIDTH")
+    if [[ "$?" = 0 ]]; then
+      if ! [[ -e "$origen" ]]; then
+        msgnotexist "$origen"
+        main
+      fi
       sed -i '/^[[:space:]]*$/d' "$origen"
       lowtoupcase=$(sed -i "s/c/C/g" "$origen")
-      exec < "$origen"
       while read -r line
       do
-	lct=$(cat "$callrepos" | grep -iwm 1 "$line")
-	lct2=$(grep -Piowm 1 "$line+" "$callrepos") # Extráe solo la palabra lct(C####) con -o usando regex de Pearl con -P, -m 1 para que imprima la primera coincidencia y no replique los repetidos en el archivo callrepos
-	if [ "$lct2" == "$line" ]; then
-	  fuente=$(grep -Piwm 1 "$line" "$callrepos")
-	  rsync -ah --info=progress2 --log-file="$rsynclog" "$fuente" "$destino"
-	  copiados=$(echo -e "  * $line" >> "$copiadoslog")
-	  let counterc=counterc+1
-	else
-	  fallidos=$(echo -e "  * $line" >> "$fallidoslog")
-	  let counterf=counterf+1
-	fi
-      done
+        lct=$(cat "$callrepos" | grep -iwm 1 "$line") 
+
+        # Imprime con -i ignorando mayúsucalas, -w imprime la línea que coincide
+        # con la palabra entera, -m 1 detiene la impresión después de la primer coincidencia
+        # y no replique repetidos en fallrepos
+
+        lct2=$(grep -Piowm 1 "$line" "$callrepos")
+
+        # Extráe solo la palabra lct(F####) con -o usando regex de Pearl
+        # con -P, -m 1 detiene la impresión después de la primer coincidencia y no replique
+        # los repetidos en el archivo fallrepos
+
+        if [ "$lct2" = "$line" ]; then
+          fuente=$(grep -Piwm 1 "$line" "$callrepos")
+
+          # Imprimiendo la línea completa de fallrepos que contiene $line
+          
+          rsync -ah --info=progress2 --log-file="$rsynclog" "$fuente" "$destino"
+          copiados=$(echo -e "  * $line" >> "$copiadoslog")
+          let counterc=counterc+1
+        else
+          fallidos=$(echo -e "  * $line" >> "$fallidoslog")
+          let counterf=counterf+1
+        fi
+      done < "$origen"
       let totalpedido=counterc+counterf
+      cp "$logo" "$destino"
+      cp "$urlbf" "$destino"
       pedido=$(cat "$origen")
-      dialog --title "Copia Finalizada" \
-      --msgbox "\n
-	  ------------ Rutas ------------\n
-        Lista ID's  : $origen\n
-            Destino : $destino\n
-	  ------------ Items ------------\n
-       ----------------+-----\n
-        Total Pedidos  |  $totalpedido   \n
-       ----------------+-----\n
-        Total Copiados |  $counterc   \n
-       ----------------+-----\n
-        total Fallidos |  $counterf   \n
-       ----------------+-----\n
-      Items Pedidos:\n
+      dialog --title "\Z0COPIA FINALIZADA" \
+        --colors --ok-label "Continuar" --stdout \
+        --msgbox "\n
+  ------------ Rutas ------------\n
+      Lista ID's  : $origen\n
+          Destino : $destino\n
+  ------------ Items ------------\n
+     ----------------+-----\n
+      Total Pedidos  |  $totalpedido   \n
+     ----------------+-----\n
+      Total Copiados |  $counterc   \n
+     ----------------+-----\n
+      total Fallidos |  $counterf   \n
+     ----------------+-----\n
+    Items Pedidos:\n
       $pedido\n\n" 0 0
-      exec cat -n "$copiadoslog"
+      clear
+      pcopiadoslog=$(cat -n "$copiadoslog")
+      dialog --title "\Z0Informe" \
+        --colors --ok-label "Cerrar" --stdout \
+        --msgbox "$pcopiadoslog" 0 0
+      return 
+    else
+      dialog --title "\Z0Warning" \
+        --colors --ok-label "Cerrar" --stdout \
+        --msgbox "Cancelado" 0 0
+    fi
+  else
+    dialog --title "\Z0Warning" \
+      --colors --ok-label "Cerrar" --stdout \
+      --msgbox "Cancelado" 0 0
+  fi
+
+else
+  dialog --title "\Z0Warning" \
+    --colors --ok-label "Cerrar" --stdout \
+    --msgbox "Cancelado" 0 0
+fi
+main
+}
+
+######################################
+# Update databases files and dirs
+######################################
+
+configs () {
+  clear
+echo -e "$SCRIPTNAME - $VERSION\n"
+echo -e "=============================="
+echo -e " Actualizar Dbs e información "
+echo -e "==============================\n"
+echo -e "<- Menú anterior 'Menú Principal'"
+echo ""
+  COLUMNS=12
+  local PS3="Opción: "
+  echo -e "Escoja una Opción\n"
+  select choice in "Update Películas" "Update Música" "Update Juegos"  "Update Apps" "Update Libros"  "Update Comics" "Dispositivos Montados y Tamaño" "Ver el mdialog_conf" "Configuración" "Vaciar Base de Datos" "Limpiar pedidos" "Limpiar Logs" "Volver al Menú Principal"; do
+    case $choice in
+      "Update Películas")
+        clear
+        if [[ -f "$fallrepos" && -d "$fsourcepath" ]]; then
+          find "$fsourcepath" -type f > "$fallrepos"        
+          find "$fsourcepath2" -type f >> "$fallrepos"
+          find "$fsourcepath3" -type f >> "$fallrepos"
+          find "$fsourcepath4" -type f >> "$fallrepos"
+          find "$fsourcepath5" -type f >> "$fallrepos"
+          find "$fsourcepath6" -type f >> "$fallrepos"
+          find "$fsourcepath7" -type f >> "$fallrepos"
+          find "$fsourcepath8" -type f >> "$fallrepos"
+          find "$fsourcepath9" -type f >> "$fallrepos"
+          find "$fsourcepath10" -type f >> "$fallrepos"
+  
+      # START find + size files Movies
+      # 'du -m' for sum in Mb to convert Gb for reports module
+  
+          find "$fsourcepath" -type f -print0 | du --files0-from=- -k > "$sfallrepos"
+          find "$fsourcepath2" -type f -print0 | du --files0-from=- -k >> "$sfallrepos"
+          find "$fsourcepath3" -type f -print0 | du --files0-from=- -k >> "$sfallrepos"
+          find "$fsourcepath4" -type f -print0 | du --files0-from=- -k >> "$sfallrepos"
+          find "$fsourcepath5" -type f -print0 | du --files0-from=- -k >> "$sfallrepos"
+          find "$fsourcepath6" -type f -print0 | du --files0-from=- -k >> "$sfallrepos"
+          find "$fsourcepath7" -type f -print0 | du --files0-from=- -k >> "$sfallrepos"
+          find "$fsourcepath8" -type f -print0 | du --files0-from=- -k >> "$sfallrepos"
+          find "$fsourcepath9" -type f -print0 | du --files0-from=- -k >> "$sfallrepos"
+          find "$fsourcepath10" -type f -print0 | du --files0-from=- -k >> "$sfallrepos"
+  
+      # END find + size files
+
+      # START find - index Movies for search module
+      # red man numfmt --to=iec --to=si
+          
+          find "$fsourcepath" -type f -printf "%s - %f\n" | numfmt --to=iec > "$xfallrepos"
+          find "$fsourcepath2" -type f -printf "%s - %f\n" | numfmt --to=iec >> "$xfallrepos"
+          find "$fsourcepath3" -type f -printf "%s - %f\n" | numfmt --to=iec >> "$xfallrepos"
+          find "$fsourcepath4" -type f -printf "%s - %f\n" | numfmt --to=iec >> "$xfallrepos"
+          find "$fsourcepath5" -type f -printf "%s - %f\n" | numfmt --to=iec >> "$xfallrepos"
+          find "$fsourcepath6" -type f -printf "%s - %f\n" | numfmt --to=iec >> "$xfallrepos"
+          find "$fsourcepath7" -type f -printf "%s - %f\n" | numfmt --to=iec >> "$xfallrepos"
+          find "$fsourcepath8" -type f -printf "%s - %f\n" | numfmt --to=iec >> "$xfallrepos"
+          find "$fsourcepath9" -type f -printf "%s - %f\n" | numfmt --to=iec >> "$xfallrepos"
+          find "$fsourcepath10" -type f -printf "%s - %f\n" | numfmt --to=iec >> "$xfallrepos"
+
+      # END find - index Movies
+
+          result=$(echo -e "Base de Datos Videos 'fallrepos':\n\n$fallrepos\n\nSUCCESSFUL UPDATED!!!\n\nBase de Datos de Videos Actualizada")
+          display_result "INFORME DB VÍDEOS"
+        else
+          result=$(echo -e "Base de Datos de Videos 'fallrepos':\n\n$fallrepos\n\nFAIL UPDATE!!!\n\nFALLÓ Actualización de la Base de Datos de Videos.")
+          display_result "INFORME DB VÍDEOS"
+        fi
+        configs
+        break
       ;;
-    9)
-      submenu
+      "Update Música")
+        clear
+        if [[ -f "$mallrepos" && -d "$msourcepath" ]]; then
+          find "$msourcepath" -type d > "$mallrepos"
+          find "$msourcepath2" -type d >> "$mallrepos"
+          find "$msourcepath3" -type d >> "$mallrepos"
+  
+      # START file + size Musica
+         
+          # old way
+          #find "$msourcepath" -type f -print0 | du --files0-from=- -h > "$smallrepos"
+
+          find "$msourcepath" -maxdepth 0 -type d -exec du -k {} \; > "$smallrepos"
+          find "$msourcepath2" -maxdepth 0 -type d -exec du -k {} \; >> "$smallrepos"
+          find "$msourcepath3" -maxdepth 0 -type d -exec du -k {} \; >> "$smallrepos"
+  
+      # END File + size Musica
+      
+      # START find - index Music for search module
+
+          find "$msourcepath" -type d -print0 | xargs -0 -IDIR sh -c 'echo "$(basename "DIR"): $(ls "DIR" | wc -l) tracks"' | sort > "$xmallrepos"
+          find "$msourcepath2" -type d -print0 | xargs -0 -IDIR sh -c 'echo "$(basename "DIR"): $(ls "DIR" | wc -l) tracks"' | sort >> "$xmallrepos"
+          find "$msourcepath3" -type d -print0 | xargs -0 -IDIR sh -c 'echo "$(basename "DIR"): $(ls "DIR" | wc -l) tracks"' | sort >> "$xmallrepos"
+
+      # END find - index Music 
+  
+          result=$(echo -e "Base de Datos de Audios mallrepos:\n\n$mallrepos\n\nSUCCEFUL UPDATED!!! \n\nBase de Datos de Audios Actualizada")
+          display_result "INFORME DB MÚSICA"
+        else
+          result=$(echo -e "Base de Datos de Audios 'mallrepos':\n\n$mallrepos\n\nFAIL UPDATE!!!\n\nFALLÓ Actualización de la Base de Datos de Audios.")
+          display_result "INFORME DB AUDIOS"
+        fi
+        configs
+        break
       ;;
-    0)
-      submenulogs
+      "Update Juegos")
+        clear
+        if [[ -f "$jallrepos" && -d "$jsourcepath" ]]; then
+          find "$jsourcepath" -type d > "$jallrepos"
+          find "$jsourcepath2" -type d >> "$jallrepos"
+          find "$jsourcepath3" -type d >> "$jallrepos"
+  
+      # START File + size Juegos
+  
+          find "$jsourcepath" -maxdepth 0 -type d -exec du -k {} \; > "$sjallrepos"
+          find "$jsourcepath2" -maxdepth 0 -type d -exec du -k {} \; >> "$sjallrepos"
+          find "$jsourcepath3" -maxdepth 0 -type d -exec du -k {} \; >> "$sjallrepos"
+
+      # END File + size Juegos
+
+      # START find - index Juegos for search module
+
+          find "$jsourcepath" -type d -exec basename \{} \; > "$xjallrepos"
+          find "$jsourcepath2" -type d -exec basename \{} \; >> "$xjallrepos"
+          find "$jsourcepath3" -type d -exec basename \{} \; >> "$xjallrepos"
+
+     # END find - index Juegos
+     
+          result=$(echo -e "Base de Datos de Juegos jallrepos:\n\n$jallrepos\n\nSUCCEFUL UPDATED!!! \n\nBase de Datos de Juegos Actualizada")
+          display_result "INFORME DB JUEGOS"
+        else
+          result=$(echo -e "Base de Datos de Juegos 'jallrepos':\n\n$jallrepos\n\nFAIL UPDATE!!!\n\nFALLÓ Actualización de la Base de Datos de Juegos.")
+          display_result "INFORME DB JUEGOS"
+        fi
+        configs
+        break
       ;;
-    10)
-      dialog --title "Configuraciones" --msgbox "\
-      Paths Origin/Target\n
-      Origin   : $dialogorig\n
-      Target 1 : $dialogdest\n
-      Target 2 : $dialogdest2\n
-      Target 3 : $dialogdest3\n\\n
-      Repository Paths\n\n
-       Music Path Source: $msourcepath\n
-        Film Path Source: $fsourcepath\n
-       Film Path Source2: $fsourcepath2\n
-       Film Path Source3: $fsourcepath3\n
-       Film Path Source4: $fsourcepath4\n
-       Film Path Source5: $fsourcepath5\n
-       Film Path Source6: $fsourcepath6\n
-       Film Path Source7: $fsourcepath7\n
-       Film Path Source8: $fsourcepath8\n
-       Film Path Source9: $fsourcepath9\n
-      Film Path Source10: $fsourcepath10\n
-      Comics Path Source: $csourcepath\n
-        Book Path Source: $lsourcepath\n
-        Game Path Source: $jsourcepath\n 
-        Apps Path Source: $asourcepath\n\n
-      Bases de Datos\n\n
-      Music DB: $mallrepos\n
-       Film DB: $fallrepos\n
-      Comic DB: $callrepos\n
-       Book DB: $lallrepos\n
-       Game DB: $jallrepos\n
-       Apps DB: $aallrepos\n\n" 31 81
+      "Update Apps")
+        clear
+        if [[ -f "$aallrepos" && -d "$asourcepath" ]]; then
+          find "$asourcepath" -type d > "$aallrepos"
+          find "$asourcepath2" -type d >> "$aallrepos"
+          find "$asourcepath3" -type d >> "$aallrepos"
+  
+      # START File + size Apps
+  
+          find "$asourcepath" -maxdepth 0 -type d -exec du -k {} \; > "$saallrepos"
+          find "$asourcepath2" -maxdepth 0 -type d -exec du -k {} \; >> "$saallrepos"
+          find "$asourcepath3" -maxdepth 0 -type d -exec du -k {} \; >> "$saallrepos"
+
+      # END File + size Apps
+      
+      # START find - index Apps for search module
+
+          find "$asourcepath" -type d -exec basename \{} \; > "$xaallrepos"
+          find "$asourcepath2" -type d -exec basename \{} \; >> "$xaallrepos"
+          find "$asourcepath3" -type d -exec basename \{} \; >> "$xaallrepos"
+
+     # END find - index Apps
+  
+          result=$(echo -e "Base de Datos de Apps aallrepos:\n\n$aallrepos\n\nSUCCEFUL UPDATED!!! \n\nBase de Datos de Apps Actualizada")
+          display_result "INFORME DB APPS"
+        else
+          result=$(echo -e "Base de Datos de Apps 'aallrepos':\n\n$aallrepos\n\nFAIL UPDATE!!!\n\nFALLÓ Actualización de la Base de Datos de Apps.")
+          display_result "INFORME DB APPS"
+        fi
+        configs
+        break
       ;;
-  esac
-  return
-done
+      "Update Libros")
+        clear
+        if [[ -f $lallrepos && -d "$lsourcepath" ]] ; then
+          find "$lsourcepath" -type f > "$lallrepos"
+          find "$lsourcepath2" -type f >> "$lallrepos"
+          find "$lsourcepath3" -type f >> "$lallrepos"
+  
+      # START File + size Libros
+  
+          find "$lsourcepath" -type f -print0 | du --files0-from=- -k > "$slallrepos"
+          find "$lsourcepath2" -type f -print0 | du --files0-from=- -k >> "$slallrepos"
+          find "$lsourcepath3" -type f -print0 | du --files0-from=- -k >> "$slallrepos"
+  
+      # START File + size Libros
+
+      # START find - index Libros for search module
+
+          find "$lsourcepath" -type f -exec basename \{} \; > "$xlallrepos"
+          find "$lsourcepath2" -type f -exec basename \{} \; >> "$xlallrepos"
+          find "$lsourcepath3" -type f -exec basename \{} \; >> "$xlallrepos"
+
+      # END find - index Libros
+  
+          result=$(echo -e "Base de Datos de Libros lallrepos:\n\n$lallrepos\n\nSUCCEFUL UPDATED!!! \n\nBase de Datos de Libros Actualizada")
+          display_result "INFORME DB LIBROS"
+        else
+          result=$(echo -e "Base de Datos de Libros 'lallrepos':\n\n$lallrepos\n\nFAIL UPDATE!!!\n\nFALLÓ Actualización de la Base de Datos de Libros.")
+          display_result "INFORME DB LIBROS"
+        fi
+        configs
+        break
+      ;;
+      "Update Comics")
+        clear
+        if [[ -f $callrepos && -d "$csourcepath" ]] ; then
+          find "$csourcepath" -type f > "$callrepos"
+          find "$csourcepath2" -type f >> "$callrepos"
+          find "$csourcepath3" -type f >> "$callrepos"
+  
+      # START File + size Comics
+  
+          find "$csourcepath" -type f -print0 | du --files0-from=- -k > "$scallrepos"
+          find "$csourcepath2" -type f -print0 | du --files0-from=- -k >> "$scallrepos"
+          find "$csourcepath3" -type f -print0 | du --files0-from=- -k >> "$scallrepos"
+  
+      # START File + size Comics
+
+      # START find - index Comics for search module
+
+          find "$csourcepath" -type f -exec basename \{} \; > "$xcallrepos"
+          find "$csourcepath2" -type f -exec basename \{} \; >> "$xcallrepos"
+          find "$csourcepath3" -type f -exec basename \{} \; >> "$xcallrepos"
+
+      # END find - index Comics
+
+          result=$(echo -e "Base de Datos de Comics callrepos:\n\n$callrepos\n\nSUCCEFUL UPDATED!!! \n\nBase de Datos de Comics Actualizada")
+          display_result "INFORME DB COMICS"
+        else
+          result=$(echo -e "Base de Datos de Comics 'callrepos':\n\n$callrepos\n\nFAIL UPDATE!!!\n\nFALLÓ Actualización de la Base de Datos de Comics.")
+          display_result "INFORME DB COMICS"
+        fi
+        configs
+        break
+      ;;
+      "Dispositivos Montados y Tamaño")
+        clear
+        result=$(lsblk -o PATH,LABEL,FSTYPE,PTTYPE,FSSIZE,FSUSED,MOUNTPOINT)
+        display_result "Dispositivos Montados"
+        result=$(df -H)
+        display_result "Tamaño disponible"
+        configs
+        break
+      ;;
+      "Ver el mdialog_conf")
+        clear
+        # Show variables from medialog 
+        verconfig=$(grep -E "^(.*=)+" mdialog_conf)
+        dialog --title "\Z0Configuraciones" \
+          --colors --ok-label "Cerrar" --stdout \
+          --msgbox "$verconfig" 31 82
+        configs
+        break
+      ;;
+      "Configuración")
+        clear
+        tempxall
+        tempconf=$(mktemp -p "$TMPDIR")
+        configfile="./mdialog_conf"
+        
+        ans=$(dialog --title "\Z0Configuración" \
+          --colors --ok-label "Guardar" --stdout \
+          --form "Para más opciones de configuración, configure manualmente el archivo ./mdialog_conf. Bases de Datos, Logs, otros. " 25 68 17 \
+          "# A donde voy a copiar #"           1 1 ""                1 0 0 0 \
+          "Destino:"                           2 1 "$dialogdest"     2 12 50 100 \
+          "# Desde donde voy a copiar #"       3 1 ""                3 0 0 0 \
+          "Origen:"                            4 1 "$dialogorig"     4 12 50 100 \
+          "============================================================="   5 1 ""                5 0 0 0 \
+          "Rutas a los repositorios"           6 1 ""                6 0 0 0 \
+          "Música:"                            7 1 "$msourcepath"    7 12 50 100 \
+          "Videos:"                            8 1 "$fsourcepath"    8 12 50 100 \
+          "Comics:"                            9 1 "$csourcepath"    9 12 50 100 \
+          "Libros:"                           10 1 "$lsourcepath"   10 12 50 100 \
+          "Juegos:"                           11 1 "$jsourcepath"   11 12 50 100 \
+          "Apps:"                             12 1 "$asourcepath"   12 12 50 100 \
+          "============================================================="  13 1 ""               13 0 0 0 \
+          "Más rutas de repositorios"         14 1 ""               14 0 0 0 \
+          "# Música #"                        15 1 ""               15 0 0 0 \
+          "Música 2:"                         16 1 "$msourcepath2"  16 12 50 100 \
+          "Música 3:"                         17 1 "$msourcepath3"  17 12 50 100 \
+          "# Películas #"                     18 1 ""               18 0 0 0 \
+          "Videos 2:"                         19 1 "$fsourcepath2"  19 12 50 100 \
+          "Videos 3:"                         20 1 "$fsourcepath3"  20 12 50 100 \
+          "Videos 4:"                         21 1 "$fsourcepath4"  21 12 50 100 \
+          "Videos 5:"                         22 1 "$fsourcepath5"  22 12 50 100 \
+          "Videos 6:"                         23 1 "$fsourcepath6"  23 12 50 100 \
+          "Videos 7:"                         24 1 "$fsourcepath7"  24 12 50 100 \
+          "Videos 8:"                         25 1 "$fsourcepath8"  25 12 50 100 \
+          "Videos 9:"                         26 1 "$fsourcepath9"  26 12 50 100 \
+          "Videos 10:"                        27 1 "$fsourcepath10" 27 12 50 100 \
+          "# Comics #"                        28 1 ""               28 0 0 0 \
+          "Comics 2:"                         29 1 "$csourcepath2"  29 12 50 100 \
+          "Comics 3:"                         30 1 "$csourcepath3"  30 12 50 100 \
+          "# Libros #"                        31 1 ""               31 0 0 0 \
+          "Libros 2:"                         32 1 "$lsourcepath2"  32 12 50 100 \
+          "Libros 3:"                         33 1 "$lsourcepath3"  33 12 50 100 \
+          "# Juegos #"                        34 1 ""               34 0 0 0 \
+          "Juegos 2:"                         35 1 "$jsourcepath2"  35 12 50 100 \
+          "Juegos 3:"                         36 1 "$jsourcepath3"  36 12 50 100 \
+          "# Aplicaciones #"                  37 1 ""               37 0 0 0 \
+          "Apps 2:"                           38 1 "$asourcepath2"  38 12 50 100 \
+          "Apps 3:"                           39 1 "$asourcepath3"  39 12 50 100 \
+          "============================================================="  40 1 ""               40 0 0 0 \
+          "Pambio de Monedas Bolivianos a Argentino"                       41 1 ""               41 0 0 0 \
+          "BOB - ARS:"                         42 1 "$argchg"        42 12 7 10 \
+          "============================================================="  43 1 ""               43 0 0 0 \
+          "Precio Películas"           44 1 ""               44 0 0 0 \
+          "4K:"                               45 1 "$p4k"           45 12 7 10 \
+          "IMAX:"                             46 1 "$pimax"         46 12 7 10 \
+          "REMUX:"                            47 1 "$premux"        47 12 7 10 \
+          "=< 1080p:"                         48 1 "$pdef"          48 12 7 10 \
+          "============================================================="  49 1 ""               49 0 0 0 \
+          "Precio x Álbum de Música"          50 1 ""               50 0 0 0 \
+          "Música:"                           51 1 "$palbum"        51 12 7 10 \
+          "============================================================="  52 1 ""               52 0 0 0 \
+          "Precio Juegos x múltiplos de 4GB"  53 1 ""               53 0 0 0 \
+          "Juego 4GB+:"                       54 1 "$pgame1"        54 12 7 10 \
+          "Juego 8GB+:"                       55 1 "$pgame2"        55 12 7 10 \
+          "Juego 12GB+:"                      56 1 "$pgame3"        56 12 7 10 \
+          "Juego 16GB+:"                      57 1 "$pgame4"        57 12 7 10 \
+          "Juego 20GB+:"                      58 1 "$pgame5"        58 12 7 10 \
+          "============================================================="  59 1 ""               59 0 0 0 \
+          "Precios Apps x múltiplos de 4GB"   60 1 ""               60 0 0 0 \
+          "Apps 4GB+:"                        61 1 "$papp1"         61 12 7 10 \
+          "Apps 8GB+:"                        62 1 "$papp2"         62 12 7 10 \
+          "Apps 12GB+:"                       63 1 "$papp3"         63 12 7 10 \
+          "Apps 16GB+:"                       64 1 "$papp4"         64 12 7 10 \
+          "Apps 20GB+:"                       65 1 "$papp5"         65 12 7 10 \
+          "============================================================="  66 1 ""               66 0 0 0 \
+          "Precio Libros"                     67 1 ""              67 0 0 0 \
+          "Libro:"                            68 1 "$pbook"        68 12 7 10 \
+          "============================================================="  69 1 ""               69 0 0 0 \
+          "Precios Comics"                    70 1 ""              70 0 0 0 \
+          "Comic:"                            71 1 "$pcomic"       71 12 7 10 
+          ) 
+
+
+        if [[ "$?" = 0 ]]; then
+          echo "${ans}" > "$tempconf"
+          destino=$(sed "1q;d" "$tempconf")
+          origen=$(sed "2q;d" "$tempconf")
+          # Repositories
+          music=$(sed "3q;d" "$tempconf")
+          movie=$(sed "4q;d" "$tempconf")
+          comics=$(sed "5q;d" "$tempconf")
+          libros=$(sed "6q;d" "$tempconf")
+          juegos=$(sed "7q;d" "$tempconf")
+          apps=$(sed "8q;d" "$tempconf")
+          # more repositories
+          music2=$(sed "9q;d" "$tempconf")
+          music3=$(sed "10q;d" "$tempconf")
+          movie2=$(sed "11q;d" "$tempconf")
+          movie3=$(sed "12q;d" "$tempconf")
+          movie4=$(sed "13q;d" "$tempconf")
+          movie5=$(sed "14q;d" "$tempconf")
+          movie6=$(sed "15q;d" "$tempconf")
+          movie7=$(sed "16q;d" "$tempconf")
+          movie8=$(sed "17q;d" "$tempconf")
+          movie9=$(sed "18q;d" "$tempconf")
+          movie10=$(sed "19q;d" "$tempconf")
+          comics2=$(sed "20q;d" "$tempconf")
+          comics3=$(sed "21q;d" "$tempconf")
+          libros2=$(sed "22q;d" "$tempconf")
+          libros3=$(sed "23q;d" "$tempconf")
+          juegos2=$(sed "24q;d" "$tempconf")
+          juegos3=$(sed "25q;d" "$tempconf")
+          apps2=$(sed "26q;d" "$tempconf")
+          apps3=$(sed "27q;d" "$tempconf")
+          # Exchange, prices
+          exchboar=$(sed "28q;d" "$tempconf")
+          # Movies prices
+          pp4k=$(sed "29q;d" "$tempconf")
+          ppimax=$(sed "30q;d" "$tempconf")
+          ppremux=$(sed "31q;d" "$tempconf")
+          ppdef=$(sed "32q;d" "$tempconf")
+          # Music prices
+          ppalbum=$(sed "33q;d" "$tempconf")
+          # Games prices
+          ppgame1=$(sed "34q;d" "$tempconf")
+          ppgame2=$(sed "35q;d" "$tempconf")
+          ppgame3=$(sed "36q;d" "$tempconf")
+          ppgame4=$(sed "37q;d" "$tempconf")
+          ppgame5=$(sed "38q;d" "$tempconf")
+          # Apps prices
+          ppapp1=$(sed "39q;d" "$tempconf")
+          ppapp2=$(sed "40q;d" "$tempconf")
+          ppapp3=$(sed "41q;d" "$tempconf")
+          ppapp4=$(sed "42q;d" "$tempconf")
+          ppapp5=$(sed "43q;d" "$tempconf")
+          # Books prices
+          ppbook=$(sed "44q;d" "$tempconf")
+          # Comics prices
+          ppcomic=$(sed "45q;d" "$tempconf")
+
+          # Updating configuration
+          sed -i -r "s#^(dialogdest=).*#\1\"$destino\"#" "$configfile"
+          sed -i -r "s#^(dialogorig=).*#\1\"$origen\"#" "$configfile" 
+          # Repositories
+          sed -i -r "s#^(msourcepath=).*#\1\"$music\"#" "$configfile" 
+          sed -i -r "s#^(fsourcepath=).*#\1\"$movie\"#" "$configfile" 
+          sed -i -r "s#^(csourcepath=).*#\1\"$comics\"#" "$configfile" 
+          sed -i -r "s#^(lsourcepath=).*#\1\"$libros\"#" "$configfile" 
+          sed -i -r "s#^(jsourcepath=).*#\1\"$juegos\"#" "$configfile" 
+          sed -i -r "s#^(asourcepath=).*#\1\"$apps\"#" "$configfile"
+          # more repositories
+          sed -i -r "s#^(msourcepath2=).*#\1\"$music2\"#" "$configfile" 
+          sed -i -r "s#^(msourcepath3=).*#\1\"$music3\"#" "$configfile" 
+          sed -i -r "s#^(fsourcepath2=).*#\1\"$movie2\"#" "$configfile"
+          sed -i -r "s#^(fsourcepath3=).*#\1\"$movie3\"#" "$configfile"
+          sed -i -r "s#^(fsourcepath4=).*#\1\"$movie4\"#" "$configfile"
+          sed -i -r "s#^(fsourcepath5=).*#\1\"$movie5\"#" "$configfile"
+          sed -i -r "s#^(fsourcepath6=).*#\1\"$movie6\"#" "$configfile"
+          sed -i -r "s#^(fsourcepath7=).*#\1\"$movie7\"#" "$configfile"
+          sed -i -r "s#^(fsourcepath8=).*#\1\"$movie8\"#" "$configfile"
+          sed -i -r "s#^(fsourcepath9=).*#\1\"$movie9\"#" "$configfile"
+          sed -i -r "s#^(fsourcepath10=).*#\1\"$movie10\"#" "$configfile"
+          sed -i -r "s#^(csourcepath2=).*#\1\"$comics2\"#" "$configfile"
+          sed -i -r "s#^(csourcepath3=).*#\1\"$comics3\"#" "$configfile"
+          sed -i -r "s#^(lsourcepath2=).*#\1\"$libros2\"#" "$configfile"
+          sed -i -r "s#^(lsourcepath3=).*#\1\"$libros3\"#" "$configfile"
+          sed -i -r "s#^(jsourcepath2=).*#\1\"$juegos2\"#" "$configfile"
+          sed -i -r "s#^(jsourcepath3=).*#\1\"$juegos3\"#" "$configfile"
+          sed -i -r "s#^(asourcepath2=).*#\1\"$apps2\"#" "$configfile"
+          sed -i -r "s#^(asourcepath3=).*#\1\"$apps3\"#" "$configfile"
+          # Exchanges, prices
+          sed -i -r "s#^(argchg=).*#\1\"$exchboar\"#" "$configfile"
+          # Movies prices
+          sed -i -r "s#^(p4k=).*#\1\"$pp4k\"#" "$configfile"
+          sed -i -r "s#^(pimax=).*#\1\"$ppimax\"#" "$configfile"
+          sed -i -r "s#^(premux=).*#\1\"$ppremux\"#" "$configfile"
+          sed -i -r "s#^(pdef=).*#\1\"$ppdef\"#" "$configfile"
+          # Music prices
+          sed -i -r "s#^(palbum=).*#\1\"$ppalbum\"#" "$configfile"
+          # Games prices
+          sed -i -r "s#^(pgame1=).*#\1\"$ppgame1\"#" "$configfile"
+          sed -i -r "s#^(pgame2=).*#\1\"$ppgame2\"#" "$configfile"
+          sed -i -r "s#^(pgame3=).*#\1\"$ppgame3\"#" "$configfile"
+          sed -i -r "s#^(pgame4=).*#\1\"$ppgame4\"#" "$configfile"
+          sed -i -r "s#^(pgame5=).*#\1\"$ppgame5\"#" "$configfile"
+          # Apps prices
+          sed -i -r "s#^(papp1=).*#\1\"$ppapp1\"#" "$configfile"
+          sed -i -r "s#^(papp2=).*#\1\"$ppapp2\"#" "$configfile"
+          sed -i -r "s#^(papp3=).*#\1\"$ppapp3\"#" "$configfile"
+          sed -i -r "s#^(papp4=).*#\1\"$ppapp4\"#" "$configfile"
+          sed -i -r "s#^(papp5=).*#\1\"$ppapp5\"#" "$configfile"
+          # Books prices
+          sed -i -r "s#^(pbook=).*#\1\"$ppbook\"#" "$configfile"
+          # Comics prices
+          sed -i -r "s#^(pcomic=).*#\1\"$ppcomic\"#" "$configfile"
+
+          dialog --title "\Z0AVISO" \
+            --colors --stdout \
+            --msgbox "Configuración Guardada.\n\nEl programa se cerrará automáticamente para que refleje la nueva configuración.\n\nLuego Vuelva a ejecutar dryncsnsx." 0 0
+          clear
+          exit 0
+        else
+          dialog --title "\Z0AVISO" \
+            --colors --ok-label "Cerrar" --stdout \
+            --msgbox "Configuración Cancelada." 0 0
+          configs
+        fi
+        break
+      ;;
+      "Vaciar Base de Datos")
+        clear
+        # db
+        echo "" > "$fallrepos"
+        echo "" > "$callrepos"
+        echo "" > "$jallrepos"
+        echo "" > "$aallrepos"
+        echo "" > "$mallrepos"
+        echo "" > "$lallrepos"
+        # file sizes
+        echo "" > "$sfallrepos"
+        echo "" > "$scallrepos"
+        echo "" > "$sjallrepos"
+        echo "" > "$saallrepos"
+        echo "" > "$smallrepos"
+        echo "" > "$slallrepos"
+        # search module db
+        echo "" > "$xfallrepos"
+        echo "" > "$xcallrepos"
+        echo "" > "$xjallrepos"
+        echo "" > "$xaallrepos"
+        echo "" > "$xmallrepos"
+        echo "" > "$xlallrepos"
+        result=$(echo "\nPaths + File Sizes DB's + db search Limpiadas.\n")
+        display_result "INFORME LIMPIEZA DE DB's"
+        configs
+        break
+      ;;
+      "Limpiar pedidos")
+        clear
+        echo "" > "$morder" 
+        echo "" > "$forder"
+        echo "" > "$corder"
+        echo "" > "$lorder"
+        echo "" > "$jorder"
+        echo "" > "$aorder"
+        result=$(echo -e "\nPedidos Limpiados.\n\nfcid.txt\nccid.txt\njcid.txt\nacid.txt\nmcid.txt\nlcid.txt\n")
+        display_result "INFORME LIMPIEZA DE PEDIDOS"
+        configs
+        break
+      ;;
+      "Limpiar Logs")
+        clear
+        echo "" > "$copiadoslog"
+        echo "" > "$fallidoslog"
+        echo "" > "$rsynclog"
+        result=$(echo "\nLogs Limpiados.\n")
+        display_result "INFORME LIMPIEZA DE LOGs"
+        configs
+        break
+      ;;
+      "Volver al Menú Principal")
+        main
+        break
+      ;;
+      "*")
+        echo -e "Invalid choice"
+      ;;
+    esac
+  done
+}
+
+helpman () {
+  clear
+  HELPERMAN="./docs/help.txt"
+  if [[ -f "$HELPERMAN" ]]; then
+    dialog --title "\Z0Ayuda" \
+      --colors --stdout \
+      --textbox "$HELPERMAN" 0 0
+    main
+  else
+    result="${HELPERMAN} not found"
+    display_result "WARNING"
+    main
+  fi
+}
+
+###################
+# Search functions
+###################
+
+searchcancel () {
+  reportresult=$(echo "Búsqueda Cancelada")
+  dialog --title "\Z0$1" \
+    --colors --ok-label "Cerrar" --stdout --no-collapse \
+    --msgbox "$reportresult" 0 0
+}
+
+searchmodule () {
+  clear
+echo -e "$SCRIPTNAME - $VERSION\n"
+echo -e "============================"
+echo -e " Búscar en la Base de Datos "
+echo -e "============================\n"
+echo -e "<- Submenú anterior 'Creación de listas de Pedido'"
+echo ""
+  COLUMNS=12
+  local PS3="Opción: "
+  echo -e "Escoja una Opción\n"
+  select choice in "Buscar Películas" "Buscar Música" "Buscar Juegos"  "Buscar Apps" "Buscar Libros"  "Buscar Comics" "Volver al Submenú Creación de listas de Pedido"; do
+    case $choice in
+      "Buscar Películas")
+        strsearch=$(dialog --title "\Z0BUSCAR VIDEO" \
+          --colors --ok-label "Buscar" --stdout \
+          --inputbox "" 0 0)
+        if [[ "$?" = 0 ]]; then
+          # Searching case insensitive words
+          srtmatch=$(sed -n "/$strsearch/Ip" "$xfallrepos" | cat -n $1)
+          dialog --title "\Z0RESULTADO DE BÚSQUEDA DE VIDEOS" \
+            --colors --ok-label "Cerrar" --stdout \
+            --msgbox "$srtmatch" 13 65
+          searchmodule
+        else
+          searchcancel "AVISO"
+          searchmodule
+        fi
+        break
+      ;;
+      "Buscar Música")
+        strsearch=$(dialog --title "\Z0BUSCAR MÚSICA" \
+          --colors --ok-label "Buscar" --stdout \
+          --inputbox "" 0 0)
+        if [[ "$?" = 0 ]]; then
+          # Searching case insensitive words
+          srtmatch=$(sed -n "/$strsearch/Ip" "$xmallrepos" | cat -n $1)
+          dialog --title "\Z0RESULTADO DE BÚSQUEDA DE MÚSICA" \
+            --colors --ok-label "Cerrar" --stdout \
+            --msgbox "$srtmatch" 13 65
+          searchmodule
+        else
+          searchcancel "AVISO"
+          searchmodule
+        fi
+        break
+      ;;
+      "Buscar Juegos")
+        strsearch=$(dialog --title "\Z0BUSCAR JUEGOS" \
+          --colors --ok-label "Buscar" --stdout \
+          --inputbox "" 0 0)
+        if [[ "$?" = 0 ]]; then
+          # Searching case insensitive words
+          srtmatch=$(sed -n "/$strsearch/Ip" "$xjallrepos" | cat -n $1)
+          dialog --title "\Z0RESULTADO DE BÚSQUEDA DE JUEGOS" \
+            --colors --ok-label "Cerrar" --stdout \
+            --msgbox "$srtmatch" 13 65
+          searchmodule
+        else
+          searchcancel "AVISO"
+          searchmodule
+        fi
+        break
+      ;;
+      "Buscar Apps")
+        strsearch=$(dialog --title "\Z0BUSCAR APPS" \
+          --colors --ok-label "Buscar" --stdout \
+          --inputbox "" 0 0)
+        if [[ "$?" = 0 ]]; then
+          # Searching case insensitive words
+          srtmatch=$(sed -n "/$strsearch/Ip" "$xaallrepos" | cat -n $1)
+          dialog --title "\Z0RESULTADO DE BÚSQUEDA DE APPS" \
+            --colors --ok-label "Cerrar" --stdout \
+            --msgbox "$srtmatch" 13 65
+          searchmodule
+        else
+          searchcancel "AVISO"
+          searchmodule
+        fi
+        break
+      ;;
+      "Buscar Libros")
+        strsearch=$(dialog --title "\Z0BUSCAR LIBROS" \
+          --colors --ok-label "Buscar" --stdout \
+          --inputbox "" 0 0)
+        if [[ "$?" = 0 ]]; then
+          # Searching case insensitive words
+          srtmatch=$(sed -n "/$strsearch/Ip" "$xlallrepos" | cat -n $1)
+          dialog --title "\Z0RESULTADO DE BÚSQUEDA DE LIBROS" \
+            --colors --ok-label "Cerrar" --stdout \
+            --msgbox "$srtmatch" 13 65
+          searchmodule
+        else
+          searchcancel "AVISO"
+          searchmodule
+        fi
+        break
+      ;;
+      "Buscar Comics")
+        strsearch=$(dialog --title "\Z0BUSCAR COMICS" \
+          --colors --ok-label "Buscar" --stdout \
+          --inputbox "" 0 0)
+        if [[ "$?" = 0 ]]; then
+          # Searching case insensitive words
+          srtmatch=$(sed -n "/$strsearch/Ip" "$xcallrepos" | cat -n $1)
+          dialog --title "\Z0RESULTADO DE BÚSQUEDA DE COMICS" \
+            --colors --ok-label "Cerrar" --stdout \
+            --msgbox "$srtmatch" 13 65
+          searchmodule
+        else
+          searchcancel "AVISO"
+          searchmodule
+        fi
+        break
+      ;;
+      "Volver al Submenú Creación de listas de Pedido")
+        orders
+        break
+      ;;
+      "*")
+        echo -e "Invalid Options"
+      ;;
+    esac
+  done
+}
+main

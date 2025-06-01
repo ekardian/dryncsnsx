@@ -1,0 +1,11 @@
+#!/bin/bash
+# Uncoment for choice language, only one
+
+# Location languaje files in 'lang/' directory
+
+# Spanish - Español
+spanish="$HOME/Programs/lang/esp"
+
+# English - Inglés
+english="$HOME/Programs/lang/eng"
+

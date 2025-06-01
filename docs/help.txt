@@ -1,0 +1,251 @@
+Dryncs & Dryncsnsx Helper
+
+More examples and scenes with confiurations
+in the repository wiki
+
+dryncs - https://github.com/ekardian/dryncs/wiki
+dryncsnsx - https://github.com/ekardian/dryncsnsx/wiki
+
+Index
+
+- What this script does
+- First configure the program if not it will fail
+- Update Databases
+- Steps for Copy dryncs and dryncsnsx
+- Mounting samba resources in Linux
+- Mounting samba resources in Windows
+- Explaining command options used with rsync
+
+
+- WHAT THIS SCRIPT DOES
+
+  Scan/Collects serialized files from Local PC/Network
+  PC's and puts it in a text file as a database to
+  write down the files you want to copy (locally/network)
+  to another Directory/PC/USB Stick.
+
+  By example for movies:
+
+      PC1             PC2             PCn
+                                                   
+  file1-F1.mp4    file3-F3.mp4    file...
+  file2-F2.mp4    file4-F4.mp4    file...
+                                              
+  +---------+     +---------+     +---------+ 
+  |         |     |         |     |         | 
+  |   PC1   |     |   PC2   | ... |   PCn   |
+  |         |     |         |     |         |
+  +---------+     +---------+     +---------+
+   \________________________/
+               |
+               |
+              PC3
+       
+          +---------+ 
+          |         | 
+          |   PC3   | 
+          |         | 
+          +---------+
+     
+     dryncsnsx collect this files into PC3 in fallrepos
+
+     file1-F1.mp4 |   
+     file2-F2.mp4 |
+     file3-F3.mp4 |--> sfallrepos
+     file4-F4.mp4 |
+
+  I  want copy  the file2-F2.mp4 and file3-F3.mp4
+
+  Write the serial "F2 and F3" 1 by 1 line to an text file,
+  by defect fcid.txt, but you can use any text file you
+  create, it doen't matter if it's uppercase or lowercase.
+
+  fcid.txt content
+
+  F1
+  F2
+
+  Use the module Movies for copy this listed files from fcid.txt.
+
+              
+- FIRST CONFIGURE THE PROGRAM IF NOT WILL FAIL
+
+  If you make a bad configuration?, use the default configuration again
+  $ cd ~/repository-cloned
+  $ cp -v mdialog_conf.inc mdialog_conf
+
+  Fill the medialog_conf file, inside the file there are examples:
+
+  * Path source, target for shortcut navigation files (optional)
+  * Orders, file by default for create reports and order list
+  * Path logs
+  * Source files for the database (where to find the files)
+  * Prices, Argentine currency exchange if you need
+
+- UPDATE DATABASES
+
+  Databases are saved in plain text
+
+  * fallrepos - Video files
+  * mallrepos - Audio files in direcories
+  * jallrepos - Game in directories
+  * aallrepos - Apps in directories
+  * lallrepos - Book files
+  * callrepos - Comic files
+  
+  Write the directory path that contain the files
+  in the 'mdialog_conf' file or in the main menu,
+  option 9) Configuración -> 9) Configuración.
+  
+  Manually open mdialog_conf and fill for videos (fallrepos),
+  example, with slash at the end:
+  fallrepos="/the/path/to/video/files/"
+  
+  Run dryncs > press 9 > Press Enter > choice 1 > press enter
+  
+  Check the fallrepos file to see if was filled with the item
+  video files.
+
+  $ less fallrepos
+  
+- STEPS FOR COPY DRYNCS AND DRYNCSNSX
+
+  Both are the same but with diferent database configuration
+  see his config file "mdialog_conf" file
+
+  DRYNCS
+  Copy from 1 source to 3 target
+
+  DRYNCSNSX
+  Copy from 1 or 10+ source to 1 target
+
+  For dryncsnsx, example for Movies/Video files.
+  
+  Assuming you have everything set up, like 
+  the shared resources in the other machines or local,
+  update your database.
+  
+  In the dialog, form, explorer file, you can use the keys
+  TAB, arroy keys for jump the fields, or write in manual the path
+  and files.
+
+  For rename with serialized name, there are scripts and programs
+  for automate the renamed files in the Readme.
+  https://github.com/ekardian/dryncsnsx
+  
+  1. Write the serialized files you want to copy to a
+     plain text file (.txt) or in ./fcid.txt (default) and save it.
+     One per line without extension:
+  
+     F100
+     F48
+     F7523452
+  
+     There are formated plaint text files for examples for fill
+     the sames are defined in the orders in mdialog_conf.
+  
+     fcid.txt for Movies, mcid.txt for Music, acid.txt for Apps
+     lcid.txt for books, ccid.txt for comics, jcid.txt for games
+  
+  1. Choice only one module Pressing the number key 1 or navigate
+     with the arrow key and press enter, ex. Películas (Movies)
+  2. Add name or description for the record, press enter
+  3. Se3ect the path where the files will be copied, used the TAB key
+     arrow keys, or write in manual te path and press enter
+  4. Select the plain text where are the listed files for copy
+     ex. fcid.txt, you can press space bar for select files too
+  5. Done. Option "0" to watch the logs.
+
+     Watch the logs manually, they are saved in the files:
+
+     copiados.log -> Copied files
+     fallidos.log -> fails
+     dryncs.log   -> the detailed progress of copying used for the
+                     rsync command
+
+
+- MOUNTING SAMBA RESOURCES IN LINUX
+
+  In the server side,
+  
+  For example we have a Samba shared resource called
+  MYSHARE with this configuration in /etc/samba/smb.conf
+  
+  [MYSHARE]
+    comment = My Path to share
+    path = /home/myuser/
+    Writeable = yes
+    browseable = no
+    valid users = your-samba-user
+  
+  In the local machine.
+  
+  Connecting via credentials
+  
+  $ touch ~/.smbcredentials
+  $ chmod 600 ~/.smbcredentials
+  $ nano ~/.smbcredentials
+  
+  add this lines with your samba user and password
+  
+  username=ilovesamba-user-in-the-remote-samba-server
+  password=your-samba-password-in-the-remote-samba-server
+  
+  Save, CTRL+o
+  Exit, CTRL+x
+  
+  Mount the shared resource MYSHARE
+  
+  $ sudo mount.cifs --options credentials=~/.credentials \
+                    //remote-ip/MYSHARE \
+                    /mnt/samba-from-other-pc
+
+  If not appear the mount.cifs command, install cifs-utils
+ 
+  For Debian, Ubuntu
+  $ sudo apt install cifs-utils
+  
+  For Fedora
+  $ sudo dnf install cifs-utils
+  
+  For Docker
+  $ sudo docker run cmd.cat/mount.cifs mount.cifs
+
+  In case still  the command "mount.cifs" not present, try:
+
+  $ sudo mount -t cifs ...
+  
+  See /proc/filesystems and /lib/modules/$(uname -r)/kernels/fs
+  for a complete list of the filesystems, The most common are
+  ext2, ext3, ext4, xfs, brtfs, vfat, sysfs, proc, nfs and cifs.
+  See 'man mount'.
+
+- MOUNTING SAMBA RESOURCES IN WINDOWS
+
+  with 2 steps you can mount a samba shared resource for dryncs
+  
+  1. Mount via windows explorer adding a new network location.
+     Login with the samba user and password
+
+     Note.
+     Dont forget the write permitions in the files shared
+     in the remote pc, need it for send the files.
+  
+  2. On cygwin terminal.
+
+     $ mount -f //remote-ip/shared-resource /mnt/my-mount-point
+  
+- EXPLAINING COMMAND OPTIONS USED WITH RSYNC
+
+  $ rsync -ah --info=progress2 \
+              --log-file="file.log" \
+                "source-dir" "Path-destiny"
+
+  leyend:
+
+  -a Preserve almost everything perm file with copy recursion
+  -h Output numbers in a  more human-readable format
+  --log-file Write log file
+  -R Read the 'man rsync'
+
+For more details about the recursion copy check the 'man rsync'.

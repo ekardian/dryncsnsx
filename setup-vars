@@ -1,0 +1,4 @@
+# These symbols are defined in the dryncs script to make them more readable.
+# Dialog program is called, but this is pretend for called to xdialog,zenity too, in future version of dryncs
+
+#: "${DIALOG=dialog}"
