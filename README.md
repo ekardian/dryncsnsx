@@ -77,6 +77,9 @@ https://www.sttmedia.com/filerenamer-download
 
 DONATION
 --------
+
+## Western Union
+
 Works for you? grate!!!! You can give me a donation via Wester Union, thanks XD
 
 - Name: Erwin Marcell Alayn
@@ -85,3 +88,10 @@ Works for you? grate!!!! You can give me a donation via Wester Union, thanks XD
 - Notify me by email : blkid@protonmail.com
 
 Te sirvió algún script? genial!!!  Sin compromisos me podrías invitar un tecito enviándome una donación (5$ dólares americanos) por Western Union.
+
+## QR
+
+QR habilitado para Bolivia
+(Opcional) Notifica tu donación al correo: blkid@protonmail.com
+
+![qr-donation](https://github.com/user-attachments/assets/2ce27ee7-ad46-4925-bde9-32d1ffa8ea58)
