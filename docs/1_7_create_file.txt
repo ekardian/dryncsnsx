@@ -1,0 +1,15 @@
+1_7_create_file.txt - 2025/12/31 00:04
+
+Crear Archivo de texto en un directorio seleccionado.
+
+1. Navegar hasta el directorio con las teclas TAB, flechas,
+   seleccionando con la tecla barra espaciadora, o escribir
+   la ruta ejemplo:
+   /home/usuario/Documentos/
+   y presionar la barra espaciadora.
+
+2. Se abre un formulario, escribir el nombre del archivo,
+   ejemplo mi-lista.txt
+
+   El archivo se creará en el directorio:
+   /home/usuario/Documentos/mi-lista.txt

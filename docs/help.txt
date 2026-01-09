@@ -1,7 +1,6 @@
 Dryncs & Dryncsnsx Helper
 
-More examples and scenes with confiurations
-in the repository wiki
+More configurations examples and scenes in the repository wiki
 
 dryncs - https://github.com/ekardian/dryncs/wiki
 dryncsnsx - https://github.com/ekardian/dryncsnsx/wiki
@@ -15,7 +14,7 @@ Index
 - Mounting samba resources in Linux
 - Mounting samba resources in Windows
 - Explaining command options used with rsync
-
+- Explaining reports
 
 - WHAT THIS SCRIPT DOES
 
@@ -24,35 +23,26 @@ Index
   write down the files you want to copy (locally/network)
   to another Directory/PC/USB Stick.
 
-  By example for movies:
-
-      PC1             PC2             PCn
-                                                   
-  file1-F1.mp4    file3-F3.mp4    file...
-  file2-F2.mp4    file4-F4.mp4    file...
+  By example for videos, im collecting from all network
+  and stored into PC3:
                                               
-  +---------+     +---------+     +---------+ 
-  |         |     |         |     |         | 
-  |   PC1   |     |   PC2   | ... |   PCn   |
-  |         |     |         |     |         |
-  +---------+     +---------+     +---------+
+  +--------------+     +--------------+     +-------------+ 
+  |     PC1      |     |    PC2       |     |     PCx     |
+  | file1-F1.mp4 |     | file3-F3.mp4 | ... |  ....mp4    | 
+  | file2-F2.mp4 |     | file4-F4.mp4 |     |             |
+  +--------------+     +--------------+     +-------------+
    \________________________/
                |
+ dryncsnsx collect this files names into PC3
+ in fallrepos file as database, 'db/fallrepos'
                |
               PC3
-       
-          +---------+ 
-          |         | 
-          |   PC3   | 
-          |         | 
-          +---------+
-     
-     dryncsnsx collect this files into PC3 in fallrepos
-
-     file1-F1.mp4 |   
-     file2-F2.mp4 |
-     file3-F3.mp4 |--> sfallrepos
-     file4-F4.mp4 |
+       +--------------+
+       | file1-F1.mp4 |   
+       | file2-F2.mp4 |
+       | file3-F3.mp4 |
+       | file4-F4.mp4 |
+       +--------------+ 
 
   I  want copy  the file2-F2.mp4 and file3-F3.mp4
 
@@ -62,13 +52,16 @@ Index
 
   fcid.txt content
 
-  F1
   F2
+  F3
 
   Use the module Movies for copy this listed files from fcid.txt.
 
               
 - FIRST CONFIGURE THE PROGRAM IF NOT WILL FAIL
+
+  You need configure the first database (videos) at least this db,
+  even if you dont have movie files,if not, this will fail.
 
   If you make a bad configuration?, use the default configuration again
   $ cd ~/repository-cloned
@@ -191,12 +184,13 @@ Index
   username=ilovesamba-user-in-the-remote-samba-server
   password=your-samba-password-in-the-remote-samba-server
   
-  Save, CTRL+o
+  Save, CTRL+o 
   Exit, CTRL+x
   
   Mount the shared resource MYSHARE
   
-  $ sudo mount.cifs --options credentials=~/.credentials \
+  $ sudo mount.cifs -o credentials=~/.smbcredentials, \
+                    file_mode=0775,dir_mode=775 \
                     //remote-ip/MYSHARE \
                     /mnt/samba-from-other-pc
 
@@ -233,6 +227,13 @@ Index
   
   2. On cygwin terminal.
 
+     First add like a network drive: Open the windows explorer,
+     ricgth click and add a network drive, fill the remote shared pc
+     and follow the steps, you need your samba username and password for this.
+
+     then in cygwin, the mount point not need to be created, this gonna be
+     created in memore (/mnt/my-mount-point)
+
      $ mount -f //remote-ip/shared-resource /mnt/my-mount-point
   
 - EXPLAINING COMMAND OPTIONS USED WITH RSYNC
@@ -249,3 +250,21 @@ Index
   -R Read the 'man rsync'
 
 For more details about the recursion copy check the 'man rsync'.
+
+- EXPLAINING REPORTS
+
+  There are a directory where the reports are generated
+  
+  "reports/"
+  
+  The reports have the text extension ".txt"
+
+  If you need create your own report, all the code its in the same
+  dryncs file, in the section Reports functions.
+
+  Some configurations like the header and footer there are in the
+  mdialog_conf file.in the section 
+
+  # Header receipt/infoice
+  # Seller details
+  # Footer receipt/invoice
