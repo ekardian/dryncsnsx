@@ -2130,6 +2130,15 @@ EOF
 # Copy functions
 #################
 
+copyprogress () {
+  echo -e ""
+  echo -e "$SCRIPTNAME - $VERSION\n"
+  echo -e "======================================="
+  echo -e "        COPIA EN PROGRESO ....         "
+  echo -e "======================================="
+  echo -e ""
+}
+
 movies () {
 # Copy videos by id
 clear
@@ -2181,7 +2190,9 @@ if [[ "$sexit" = 0 ]]; then
           fuente=$(grep -Piwm 1 "$line" "$fallrepos")
 
           # Imprimiendo la línea completa de fallrepos que contiene $line
-          
+
+          clear
+          copyprogress
           rsync -ah --info=progress2 --log-file="$rsynclog" "$fuente" "$destino"
           copiados=$(echo -e "  * $line" >> "$copiadoslog")
           let counterc=counterc+1
@@ -2274,6 +2285,8 @@ if [[ "$sexit" = 0 ]]; then
           lct2=$(grep -Piowm 1 "$line" "$mallrepos")
           if [ "$lct2" = "$line" ]; then
             fuente=$(grep -Piwm 1 "$line" "$mallrepos")
+            clear
+            copyprogress
             rsync -ah --info=progress2 --log-file="$rsynclog" "$fuente" "$destino"
             copiados=$(echo -e "  * $line" >> "$copiadoslog")
             let counterc=counterc+1
@@ -2365,6 +2378,8 @@ if [[ "$sexit" = 0 ]]; then
         lct2=$(grep -Piowm 1 "$line" "$jallrepos")
         if [ "$lct2" = "$line" ]; then
           fuente=$(grep -Piwm 1 "$line" "$jallrepos")
+          clear
+          copyprogress
           rsync -ah --info=progress2 --log-file="$rsynclog" "$fuente" "$destino"
           copiados=$(echo -e "  * $line" >> "$copiadoslog")
           let counterc=counterc+1
@@ -2456,6 +2471,8 @@ if [[ "$sexit" = 0 ]]; then
         lct2=$(grep -Piowm 1 "$line" "$aallrepos")
         if [ "$lct2" = "$line" ]; then
           fuente=$(grep -Piwm 1 "$line" "$aallrepos")
+          clear
+          copyprogress
           rsync -ah --info=progress2 --log-file="$rsynclog" "$fuente" "$destino"
           copiados=$(echo -e "  * $line" >> "$copiadoslog")
           let counterc=counterc+1
@@ -2559,6 +2576,8 @@ if [[ "$?" = 0 ]]; then
 
           # Imprimiendo la línea completa de fallrepos que contiene $line
           
+          clear
+          copyprogress
           rsync -ah --info=progress2 --log-file="$rsynclog" "$fuente" "$destino"
           copiados=$(echo -e "  * $line" >> "$copiadoslog")
           let counterc=counterc+1
@@ -2663,7 +2682,9 @@ if [[ "$sexit" = 0 ]]; then
           fuente=$(grep -Piwm 1 "$line" "$callrepos")
 
           # Imprimiendo la línea completa de fallrepos que contiene $line
-          
+         
+          clear
+          copyprogress 
           rsync -ah --info=progress2 --log-file="$rsynclog" "$fuente" "$destino"
           copiados=$(echo -e "  * $line" >> "$copiadoslog")
           let counterc=counterc+1
