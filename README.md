@@ -1,4 +1,4 @@
-# dryncsnsx
+# dryncsnsx 4.1 Stable
 For Linux and Windows (Cygwin)
 
 Copy from 3 source to 1 target - serialized files and directories
