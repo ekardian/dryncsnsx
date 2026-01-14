@@ -87,9 +87,15 @@
 #                github https://github.com/ekardian/dryncsnsx
 #                Youtube Channel https://www.youtube.com/@biostech9663/videos
 #
-#       CREATED: 2025/06/01 19:15
+#       CREATED: 2026/01/13 04:19
 #
-#      REVISION: 4.0-stable
+#      REVISION: 4.1-stable
+#
+#  NEW FEATURES: Some:
+#                - Music Module now has the option to search by tracks and albums
+#                - Help button and updated help module
+#                - new database for module music db/xmallrepos2 populated now with columns
+#                      <file number> <track size> <track name>
 #
 #      DONATION: https://github.com/ekardian/dryncsnsx#donation
 #
@@ -130,7 +136,7 @@ brci="\e[1;41;33m" # bold, red background, yellow foreground
 co="\e[0m"
 lin="echo -e ${ci}-----------------------------------------${co}"
 
-VERSION="4.0-stable"
+VERSION="4.1-stable"
 
 SCRIPTNAME="dryncsnsx"
 
@@ -2786,7 +2792,7 @@ echo ""
       # END find + size files
 
       # START find - index Movies for search module
-      # red man numfmt --to=iec --to=si
+      # read man numfmt --to=iec --to=si
           
           find "$fsourcepath" -type f -printf "%s - %f\n" | numfmt --to=iec > "$xfallrepos"
           find "$fsourcepath2" -type f -printf "%s - %f\n" | numfmt --to=iec >> "$xfallrepos"
@@ -2820,11 +2826,27 @@ echo ""
       # START file + size Musica
          
           # old way
-          #find "$msourcepath" -type f -print0 | du --files0-from=- -h > "$smallrepos"
+          # find "$msourcepath" -type f -print0 | du --files0-from=- -h > "$smallrepos"
+          # for search albums contained in directories
 
           find "$msourcepath" -maxdepth 0 -type d -exec du -k {} \; > "$smallrepos"
           find "$msourcepath2" -maxdepth 0 -type d -exec du -k {} \; >> "$smallrepos"
           find "$msourcepath3" -maxdepth 0 -type d -exec du -k {} \; >> "$smallrepos"
+
+          # for search tracks
+
+          # read man numfmt --to=iec --to=si
+          
+          find "$msourcepath" -type f -printf "%s - %f\n" | numfmt --to=iec > "$xmallrepos2"
+          find "$msourcepath2" -type f -printf "%s - %f\n" | numfmt --to=iec >> "$xmallrepos2"
+          find "$msourcepath3" -type f -printf "%s - %f\n" | numfmt --to=iec >> "$xmallrepos2"
+          find "$msourcepath4" -type f -printf "%s - %f\n" | numfmt --to=iec >> "$xmallrepos2"
+          find "$msourcepath5" -type f -printf "%s - %f\n" | numfmt --to=iec >> "$xmallrepos2"
+          find "$msourcepath6" -type f -printf "%s - %f\n" | numfmt --to=iec >> "$xmallrepos2"
+          find "$msourcepath7" -type f -printf "%s - %f\n" | numfmt --to=iec >> "$xmallrepos2"
+          find "$msourcepath8" -type f -printf "%s - %f\n" | numfmt --to=iec >> "$xmallrepos2"
+          find "$msourcepath9" -type f -printf "%s - %f\n" | numfmt --to=iec >> "$xmallrepos2"
+          find "$msourcepath10" -type f -printf "%s - %f\n" | numfmt --to=iec >> "$xmallrepos2"
   
       # END File + size Musica
       
@@ -3304,14 +3326,14 @@ echo ""
     case $choice in
       "Buscar Películas")
         strsearch=$(dialog --title "\Z0BUSCAR VIDEO" \
-          --colors --ok-label "Buscar" --stdout \
+          --backtitle "$BACKTITLEMUSIC" --colors --ok-label "Buscar" --stdout \
           --inputbox "" 0 0)
         sexit=$?
         if [[ "$sexit" = 0 ]]; then
           # Searching case insensitive words
           srtmatch=$(sed -n "/$strsearch/Ip" "$xfallrepos" | cat -n $1)
           dialog --title "\Z0RESULTADO DE BÚSQUEDA DE VIDEOS" \
-            --colors --ok-label "Cerrar" --stdout \
+            --backtitle "$BACKTITLEMUSIC" --colors --ok-label "Cerrar" --stdout \
             --msgbox "$srtmatch" 13 65
           searchmodule
         else
@@ -3321,33 +3343,62 @@ echo ""
         break
       ;;
       "Buscar Música")
-        strsearch=$(dialog --title "\Z0BUSCAR MÚSICA" \
-          --colors --ok-label "Buscar" --stdout \
-          --inputbox "" 0 0)
+        # Dialog Yes No
+        dialog --title "\Z0Escoja una Opción" \
+          --backtitle "$BACKTITLEMUSIC" --colors --yes-label "Buscar Track" --no-label "Buscar Álbum" --stdout \
+          --yesno "1) Buscar por Track\n2) Buscar por Álbum.\nESC) Presione Escape para Cancelar\n" 0 0
         sexit=$?
-        if [[ "$sexit" = 0 ]]; then
-          # Searching case insensitive words
-          srtmatch=$(sed -n "/$strsearch/Ip" "$xmallrepos" | cat -n $1)
-          dialog --title "\Z0RESULTADO DE BÚSQUEDA DE MÚSICA" \
-            --colors --ok-label "Cerrar" --stdout \
-            --msgbox "$srtmatch" 23 85
-          searchmodule
-        else
+        # Cancelando búsqueda si se presiona tecla escape
+        if [[ "$sexit" = 255 ]]; then
           searchcancel "AVISO"
           searchmodule
         fi
-        break
+        if [[ "$sexit" = 0 ]]; then
+          strsearch=$(dialog --title "\Z0BUSCAR MÚSICA" \
+            --backtitle "$BACKTITLEMUSIC" --colors --ok-label "Buscar" --stdout \
+            --inputbox "" 0 0)
+          sexit=$?
+          if [[ "$sexit" = 0 ]]; then
+            # Searching case insensitive words
+            srtmatch=$(sed -n "/$strsearch/Ip" "$xmallrepos2" | cat -n $1)
+            dialog --title "\Z0RESULTADO DE BÚSQUEDA DE MÚSICA" \
+              --backtitle "$BACKTITLEMUSIC" --colors --ok-label "Cerrar" --stdout \
+              --msgbox "$srtmatch" 23 85
+            searchmodule
+          else
+            searchcancel "AVISO"
+            searchmodule
+          fi
+          break
+        else
+          strsearch=$(dialog --title "\Z0BUSCAR MÚSICA" \
+            --backtitle "$BACKTITLEMUSIC" --colors --ok-label "Buscar" --stdout \
+            --inputbox "" 0 0)
+          sexit=$?
+          if [[ "$sexit" = 0 ]]; then
+            # Searching case insensitive words
+            srtmatch=$(sed -n "/$strsearch/Ip" "$xmallrepos" | cat -n $1)
+            dialog --title "\Z0RESULTADO DE BÚSQUEDA DE MÚSICA" \
+              --backtitle "$BACKTITLEMUSIC" --colors --ok-label "Cerrar" --stdout \
+              --msgbox "$srtmatch" 23 85
+            searchmodule
+          else
+            searchcancel "AVISO"
+            searchmodule
+          fi
+          break
+        fi
       ;;
       "Buscar Juegos")
         strsearch=$(dialog --title "\Z0BUSCAR JUEGOS" \
-          --colors --ok-label "Buscar" --stdout \
+          --backtitle "$BACKTITLEJUEGOS" --colors --ok-label "Buscar" --stdout \
           --inputbox "" 0 0)
         sexit=$?
         if [[ "$sexit" = 0 ]]; then
           # Searching case insensitive words
           srtmatch=$(sed -n "/$strsearch/Ip" "$xjallrepos" | cat -n $1)
           dialog --title "\Z0RESULTADO DE BÚSQUEDA DE JUEGOS" \
-            --colors --ok-label "Cerrar" --stdout \
+            --backtitle "$BACKTITLEJUEGOS" --colors --ok-label "Cerrar" --stdout \
             --msgbox "$srtmatch" 13 65
           searchmodule
         else
@@ -3358,14 +3409,14 @@ echo ""
       ;;
       "Buscar Apps")
         strsearch=$(dialog --title "\Z0BUSCAR APPS" \
-          --colors --ok-label "Buscar" --stdout \
+          --backtitle "$BACKTITLEAPPS" --colors --ok-label "Buscar" --stdout \
           --inputbox "" 0 0)
         sexit=$?
         if [[ "$sexit" = 0 ]]; then
           # Searching case insensitive words
           srtmatch=$(sed -n "/$strsearch/Ip" "$xaallrepos" | cat -n $1)
           dialog --title "\Z0RESULTADO DE BÚSQUEDA DE APPS" \
-            --colors --ok-label "Cerrar" --stdout \
+            --backtitle "$BACKTITLEAPPS" --colors --ok-label "Cerrar" --stdout \
             --msgbox "$srtmatch" 13 65
           searchmodule
         else
@@ -3376,14 +3427,14 @@ echo ""
       ;;
       "Buscar Libros")
         strsearch=$(dialog --title "\Z0BUSCAR LIBROS" \
-          --colors --ok-label "Buscar" --stdout \
+          --backtitle "$BACKTITLELIBROS" --colors --ok-label "Buscar" --stdout \
           --inputbox "" 0 0)
         sexit=$?
         if [[ "$sexit" = 0 ]]; then
           # Searching case insensitive words
           srtmatch=$(sed -n "/$strsearch/Ip" "$xlallrepos" | cat -n $1)
           dialog --title "\Z0RESULTADO DE BÚSQUEDA DE LIBROS" \
-            --colors --ok-label "Cerrar" --stdout \
+            --backtitle "$BACKTITLELIBROS" --colors --ok-label "Cerrar" --stdout \
             --msgbox "$srtmatch" 13 65
           searchmodule
         else
@@ -3394,14 +3445,14 @@ echo ""
       ;;
       "Buscar Comics")
         strsearch=$(dialog --title "\Z0BUSCAR COMICS" \
-          --colors --ok-label "Buscar" --stdout \
+          --backtitle "$BACKTITLECOMICS" --colors --ok-label "Buscar" --stdout \
           --inputbox "" 0 0)
         sexit=$?
         if [[ "$sexit" = 0 ]]; then
           # Searching case insensitive words
           srtmatch=$(sed -n "/$strsearch/Ip" "$xcallrepos" | cat -n $1)
           dialog --title "\Z0RESULTADO DE BÚSQUEDA DE COMICS" \
-            --colors --ok-label "Cerrar" --stdout \
+            --backtitle "$BACKTITLECOMICS" --colors --ok-label "Cerrar" --stdout \
             --msgbox "$srtmatch" 13 65
           searchmodule
         else
