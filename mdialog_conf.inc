@@ -63,6 +63,7 @@ saallrepos="$HOME/Programs/dryncsnsx.git/db/saallrepos"
 # 'file name' tracks for music
 
 xmallrepos="$HOME/Programs/dryncsnsx.git/db/xmallrepos"
+xmallrepos2="$HOME/Programs/dryncsnsx.git/db/xmallrepos2"
 xfallrepos="$HOME/Programs/dryncsnsx.git/db/xfallrepos"
 xcallrepos="$HOME/Programs/dryncsnsx.git/db/xcallrepos"
 xlallrepos="$HOME/Programs/dryncsnsx.git/db/xlallrepos"
