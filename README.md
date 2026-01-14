@@ -3,7 +3,8 @@ For Linux and Windows (Cygwin)
 
 Copy from 3 source to 1 target - serialized files and directories
 
-<img width="866" height="504" alt="imagen" src="https://github.com/user-attachments/assets/98b06cf4-85db-4bcf-b49f-7427a20a0608" />
+<img width="875" height="503" alt="imagen" src="https://github.com/user-attachments/assets/8ff8cf60-2898-4ac4-a96d-9940e3a4a9fd" />
+
 
 Tested in:
 
