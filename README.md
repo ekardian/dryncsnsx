@@ -1,6 +1,7 @@
 # dryncsnsx
 
 dryncsnsx ``4.2.1`` unstable versión launched. 2026/03/01
+For test this versión just clone or download
 
 Copy serialized files listed from a text file, from local pc or remote pc to other place. (very faster!!!)
 For Linux and Windows (Cygwin)
