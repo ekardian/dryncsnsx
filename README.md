@@ -1,6 +1,6 @@
 # dryncsnsx
 
-dryncsnsx ``4.1`` Copy serialized files listed from a text file, from local pc or remote pc to other place. (very faster!!!)
+dryncsnsx ``4.2`` Copy serialized files listed from a text file, from local pc or remote pc to other place. (very faster!!!)
 For Linux and Windows (Cygwin)
 
 Copy from 3 source to 1 target - serialized files and directories
