@@ -11,6 +11,9 @@
 #    CONFIG   #
 ###############
 
+# Path to dialog program
+DLG="/usr/bin/dialog"
+
 # If you make a bad configuration?, use the default configuration again.
 # cd ~/repository-cloned
 # cp -v mdialog_conf.inc mdialog_conf
@@ -186,6 +189,10 @@ instagram.com/ClipsContenido
 x.com/ClipsContenido
 EOF
 )
+
+# Password for rename files
+
+PASSWARNING="change-me"
 
 # For Cygwin(Windows) fill with the full path
 # /cygdrive/path/to/reports/

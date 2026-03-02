@@ -136,7 +136,7 @@ brci="\e[1;41;33m" # bold, red background, yellow foreground
 co="\e[0m"
 lin="echo -e ${ci}-----------------------------------------${co}"
 
-VERSION="4.1-stable"
+VERSION="4.2.1-unstable"
 
 SCRIPTNAME="dryncsnsx"
 
@@ -149,8 +149,39 @@ BACKTITLEAPPS="Módulo de Apps - $SCRIPTNAME - $VERSION"
 BACKTITLELIBROS="Módulo de Libros - $SCRIPTNAME - $VERSION"
 BACKTITLECOMICS="Módulo de Comics - $SCRIPTNAME - $VERSION"
 
+# Tools
+
+# Serialize files/dirs
+BACKTITLESERIALIZE="Herramienta de Serialización - $SCRIPTNAME - $VERSION"
+
+# TRAP's
 # capture the key combo exit INT -> CTRL + C
+
 trap "aborted" INT
+trap "userExit" HUP QUIT TERM STOP PWR
+
+# trap explanation for compatibility for dash, sh
+# https://stackoverflow.com/a/41555893
+
+#on_exit () {
+#  echo "Cleaning up... (remove tmp files, etc)"
+#}
+#
+#on_preExit () {
+#  echo
+#  echo "Exiting..." # Runs just bejore actual exit,
+#                    # shell will execute EXIT (0) after finishinig
+#                    # that we hook also in on_exit function
+#  exit 2
+#}
+#
+#trap on_exit EXIT                           # EXIT = 0
+#trap on_preExit HUP INT QUIT TERM STOP PWR  # 1 2 3 15 30
+#
+#sleep 3  # some actual code...
+#
+#exit
+
 
 aborted () {
   clear
@@ -161,7 +192,7 @@ aborted () {
   echo -e "DONATION: https://github.com/ekardian/dryncsnsx#donation"
   $lin
   echo ""
-  exit 0
+  exit 1
 }
 
 userExit () {
@@ -173,7 +204,7 @@ userExit () {
   echo -e "DONATION: https://github.com/ekardian/dryncsnsx#donation"
   $lin
   echo ""
-  exit 1
+  exit 0
 }
 # DIALOG Button
 
@@ -298,7 +329,7 @@ echo ""
   COLUMNS=12
   local PS3="Opción: "
   echo -e "Escoja una Opción\n"
-  select choice in "Películas" "Música" "Juegos"  "Apps" "Libros"  "Comics" "Crear Archivo" "Buscar Archivos" "Volver al Menú Principal"; do
+  select choice in "Películas" "Música" "Juegos"  "Apps" "Libros"  "Comics" "Crear Archivo" "Buscar Archivos" "Serializar Archivos o Carpetas" "Volver al Menú Principal"; do
     case $choice in
       "Películas")
         # Order películas
@@ -616,22 +647,6 @@ echo ""
         origin=$(dialog --title "\Z0Seleccionar un Directorio" \
           --colors --ok-label "Seleccionar" --stdout --help-button \
           --fselect "$dialogorig" "$FSHEIGHT" "$FSWIDTH")
-        # open the help file
-        #sexit=$?
-        #if [[ "$sexit" = 2 ]]; then
-        #  clear
-        #  HELPERMAN="./docs/1_7_create_file.txt"
-        #  if [[ -f "$HELPERMAN" ]]; then
-        #    dialog --title "\Z0Ayuda" \
-        #      --colors --stdout \
-        #      --textbox "$HELPERMAN" 0 0
-        #    orders
-        #  else
-        #    result="${HELPERMAN} not found"
-        #    display_result "WARNING"
-        #    orders
-        #  fi
-        #fi
         # check if exist a file for not rename and if its not a directory for create a new file
         sexit=$?
         if [[ "$sexit" = "0"  ]]; then
@@ -679,6 +694,10 @@ echo ""
         searchmodule
         break
       ;;
+      "Serializar Archivos o Carpetas")
+        serialfiles
+        break
+      ;;
       "Volver al Menú Principal")
         main
         break
@@ -703,10 +722,14 @@ reportcancel () {
     --msgbox "$reportresult" 0 0
 }
 
-# mktemp and trap function
+# mktemp - trap function - print the directory from where is executed
 
 tempxall () {
-  TMPDIR="./tmp"
+  NAMESCRIPT="$(basename "$0")"
+  DIRSCRIPT="$(dirname "$0")"
+  PWDSCRIPT="$(pwd)"
+  TMPDIR="$PWDSCRIPT/tmp"
+  #TMPDIR="./tmp"
   # Removing created temp files in unexpected bash exit
   trap 'rm -f -- "$TMPDIR"/*' EXIT
 }
@@ -3246,6 +3269,8 @@ echo ""
         echo "" > "$xaallrepos"
         echo "" > "$xmallrepos"
         echo "" > "$xlallrepos"
+        # search module x music files or directories
+        echo "" > "$xmallrepos2"
         result=$(echo "\nPaths + File Sizes DB's + db search Limpiadas.\n")
         display_result "INFORME LIMPIEZA DE DB's"
         configs
@@ -3470,5 +3495,333 @@ echo ""
       ;;
     esac
   done
+}
+
+# PROCEDURE FOR SERIALIZE FILES AND DIRECTORIES
+
+#######################
+# seriefiles functions
+#######################
+
+rmTmpSerial () {
+  clear
+  echo -e ""
+  echo -e "SE CERRARÁ EL PROGRAMA, ELIMINANDO TEMPORALES..."
+  echo -e ""
+  rm -f -- "$TMPDIR"/*
+  sleep 3
+  echo -e "VUELVA A ABRIR EL PROGRAMA dryncsnsx"
+  echo -e ""
+  exit 0
+}
+
+# Function for dialog msg, yesno with default size option
+
+dlg_serial () {
+  "$DLG" --title "\Z0$1" \
+    --backtitle "$BACKTITLESERIALIZE" --colors --stdout \
+    --"$2" "$MSG_SERIAL" 0 0
+}
+
+dlg_yesno_serial () {
+  "$DLG" --title "\Z0$1" \
+    --backtitle "$BACKTITLESERIALIZE" --colors --yes-label "Archivos" --no-label "Directorios" --stdout \
+    --"$2" "$MSG_SERIAL" 0 0
+}
+
+serialfiles () {
+
+# PASSWORD FOR RENAME FILES
+
+  MSG_SERIAL="$(echo "\nANTES DE RENOMBRAR ARCHIVOS O DIRECOTRIOS\n\nREALICE UNA COPIA DE SUS ARCHIVOS Y DIRECTORIOS.")"
+  dlg_serial "AVISO" "msgbox"
+
+  PPDATA=$(dialog --title "\Z0Contraseña de Acceso" \
+    --backtitle "$BACKTITLESERIALIZE" --clear --colors --stdout \
+    --insecure --passwordbox "Contraseña de paso configurada en:\nmdialog_conf" 10 30 2 )
+  sexit=$?
+  if [ "$sexit" =  1 ] || [ "$sexit" = 255 ]; then
+    MSG_SERIAL="$(echo "\nCANCELADO (Cod. $sexit)")"
+    dlg_serial "Contraseña de Acceso" "msgbox"
+    orders
+  fi
+  if [ "$sexit" = 0 ]; then 
+    if ! [ "$PPDATA" = "$PASSWARNING" ]; then
+      MSG_SERIAL="$(echo "\nCONTRASEÑAS NO COINCIDEN\nVUELVA A INTENTARLO")"
+      dlg_serial "Contraseña de Acceso" "msgbox"
+      orders
+    else
+      MSG_SERIAL="$(echo "\nCONTRASEÑAS COINCIDEN.\nPROCEDA CON PRECAUCIÓN")"
+      dlg_serial "Contraseño de Acceso" "msgbox"
+    fi
+  fi
+
+  # Dialog Yes No
+
+  MSG_SERIAL="$(echo "\n- Serializar Archivos o Directorios.\n- Presione EScape para Cancelar (ESC)")"
+  dlg_yesno_serial "Escoja una Opción" "yesno"
+  sexit=$?
+  # yesno options for serialize files and directories
+  case "$sexit" in
+    0)
+      # serializar archivos
+      
+      # Delete temp files with Trap function when EXIT
+      tempxall
+
+      # Temporary file for form
+      ftempserialize=$(mktemp -p "$TMPDIR")
+
+      # Temporary file to check if exists directories inside other dirctories
+      ftempverdirs=$(mktemp -p "$TMPDIR")
+
+      MSG_SERIAL=$(cat <<EOF
+
+Ejemplo de Serialización de Archivos
+
+Con Letra: M y número inicial: 1
+
+file-a.mkv -> file-a-M1.mkv
+file-b.mkv -> file-b-M2.mkv 
+file-c.mkv -> file-c-M3.mkv
+
+EOF
+)
+      dlg_serial "CÓMO FUNCIONA LA SERIALIZACIÓN" "msgbox"
+
+      # Dimensiones para serial form alto=9 ancho=31 alto-formulario=3
+
+      fserialform=$(dialog --title "\Z0Formulario de Serialización" \
+        --backtitle "$BACKTITLESERIALIZE" --colors --ok-label "Generar" --stdout \
+        --form "Rellene los campos.\nLetra: A, P, Docs, etc.\nNúmero: Num. inicial" 9 31 3 \
+        "Letra:" 1 1 "" 1 9 22 10 \
+        "Número:" 2 1 "" 2 9 22 10)
+      sexit=$?
+      if [ "$sexit" = 1 ] || [ "$sexit" = 255 ]; then
+        MSG_SERIAL=$(echo "\nCANCELADO (Cod. $sexit)")
+        dlg_serial "Formulario de Serialización" "msgbox"
+        orders
+      fi
+      if [ "$sexit" = 0 ]; then
+        echo "${fserialform}" > "$ftempserialize"
+        fletterserial=$(sed "1q;d" "$ftempserialize")
+        i=$(sed "2q;d" "$ftempserialize")
+        if [ -z "$fletterserial" ] || [ -z "$i" ]; then
+          MSG_SERIAL=$(echo "\nNo pueden haber campos vacios\n\nLetra: $fletterserial\nNúmero: $i\n\n")
+          dlg_serial "Formulario de Serialización - Rango" "msgbox"
+          orders
+        fi
+
+        # Selección de directorio
+
+        fselectdir=$(dialog --title "\Z0Serialización de Archivos - Seleccionar Directorio" \
+          --backtitle "$BACKTITLESERIALIZE" --colors --stdout \
+          --fselect "$dialogdest" "$FSHEIGHT" "$FSWIDTH")
+        sexit=$?
+        if [ "$sexit" = 1 ] || [ "$sexit" = 255 ]; then
+          MSG_SERIAL=$(echo "\nCANCELADO (Cod $sexit)")
+          dlg_serial "Serialización de Archivos - Seleccionar Directorio" "msgbox"
+          orders
+        fi
+        if [ ! -d "$fselectdir" ] || [ -f "$fselectdir" ]; then
+          MSG_SERIAL=$(echo "\nDirectorio no existe o ha seleccionado un archivo. Seleccione un directorio existente.")
+          dlg_serial "Serialización de Archivos - Seleccionar Directorio" "msgbox"
+          orders 
+        fi
+
+        # Checking if dryncs and mdialog_conf exists
+
+        cd "$fselectdir"
+        if [ -f "dryncs" ] || [ -f "mdialog_conf" ]; then
+          MSG_SERIAL=$(echo "\nEL Script será detenido, no puede renombrarse así mismo. (dryncs - mdialog_conf, escoja otro directorio")
+          dlg_serial "Serialización de Archivos" "msgbox"
+          cd "$PWDSCRIPT"
+          return
+        fi
+
+        # Ultimate Advice
+
+        MSG_SERIAL="$(echo "\nSE SERIALIZARÁ CON::\n\nLetra: $fletterserial\nNúmero Inicial: $i\nRuta:\n$fselectdir\n\nDESEA CONTINUAR?\n\n")"
+        dlg_serial "Serialización de Archivos - Rango" "yesno"
+        sexit=$?
+        if [ "$sexit" = 1 ] || [ "$sexit" = 255 ]; then
+          MSG_SERIAL=$(echo "\nCANCELADO (Cod. $sexit)")
+          dlg_serial "Serialización de Archivos" "msgbox"
+          orders
+        fi
+
+        # starting serialize files
+        
+        if [ -f "archivos-serializados.txt" ] || [ -f "archivos-rangos.txt" ]; then
+          rm -f "archivos-serializados.txt" "archivos-rangos.txt"
+        fi
+        
+        # checking if exists directories detecting the 2 first characters printed by find command (./)
+        #
+        # this procedure dump filter the 2 first characters "./" from a find command
+        # the filter " grep -o '^..' " does the job and " head -n 1 " print the first line
+        # if slash "./" exists, print true, stop and return to sub-menu
+        # the other way grep -o ".$" print the last  characters, but the find command
+        # do not print the slash (/) from a directory list like /path/to/dir
+        # so for this we used the grep -o "^.." for filter the dot and slash (./) path/to/dir
+        # listed by find -mindepth 1 -maxdepth 1 -type d
+
+        find -mindepth 1 -maxdepth 1 -type d > "$ftempverdirs"
+        fverdirs=$(cat "$ftempverdirs" | grep -o "^.." | head -n 1)
+        if [ "$fverdirs" = "./" ]; then
+          MSG_SERIAL="$(echo "\nExisten directorios, escoja una ruta donde solo existan archivos para serializar.\n\n$ cat tempverdirs | grep -o '^..' | head -n 1\n(Cod. Condition String Detected: $fverdirs)")"
+          dlg_serial "Serialización de Archivos" "msgbox"
+          cd "$PWDSCRIPT"
+          return 1
+        fi
+
+        # init serialization
+
+        for f in * 
+        do
+          ext=${f##*.}
+          basename=${f%.*}
+          t=$((i++))
+          mv -n -- "$f" "$basename-$fletterserial$t.$ext"
+          echo "$basename-$fletterserial$t.$ext" >> archivos-serializados.txt
+          echo "$fletterserial$t" >> archivos-rangos.txt
+        done
+        MSG_SERIAL=$(echo "\nSe han serializado los archivos. Una lista generada de los números serializados se encuentran en:\n\n${fselectdir}\n\n- archivos-serializados.txt\n- archivos-rangos.txt")
+        dlg_serial "Serialización de Archivos" "msgbox"
+        cd "$PWDSCRIPT"
+        return
+      fi
+      break
+      ;;
+    1)
+      # serializar directorios
+
+      # function for watch from where is running dryncs for return to his directory source
+      # this is important for delete the temporary files after quit the dryncsnsx script
+
+      # Delete temp files with Trap function when EXIT
+      tempxall
+
+      # Temporary file for form
+
+      dtempserialize=$(mktemp -p "$TMPDIR")
+
+      MSG_SERIAL=$(cat <<EOF
+
+Serialización de Directorios
+
+Con Letra: P y número inicial: 11
+
+./Álbum-a -> ./Álbum-a-P11
+./Álbum-b -> ./Álbum-b-P12
+./Álbum-c -> ./Álbum-c-P13
+
+EOF
+)
+      dlg_serial "CÓMO FUNCIONA LA SERIALIZACIÓN" "msgbox"
+
+      # Dimensiones para serial form alto=9 ancho=31 alto-formulario=3
+
+      dserialform=$(dialog --title "\Z0Formulario de Serialización de Directorios" \
+        --backtitle "$BACKTITLESERIALIZE" --colors --ok-label "Generar" --stdout \
+        --form "Rellene los campos.\nLetra: A, P, Docs, etc.\nNúmero: Num. inicial" 9 31 3 \
+        "Letra:" 1 1 "" 1 9 22 10 \
+        "Número:" 2 1 "" 2 9 22 10)
+      sexit=$?
+      if [ "$sexit" = 1 ] || [ "$sexit" = 255 ]; then
+        MSG_SERIAL=$(echo "\nCANCELADO (Cod. $sexit)")
+        dlg_serial "Formulario de Serialización de Directorios" "msgbox"
+        orders
+      fi
+      if [ "$sexit" = 0 ]; then
+        echo "${dserialform}" > "$dtempserialize"
+        dletterserial=$(sed "1q;d" "$dtempserialize")
+        i=$(sed "2q;d" "$dtempserialize")
+        if [ -z "$dletterserial" ] || [ -z "$i" ]; then
+          MSG_SERIAL=$(echo "\nNo pueden haber campos vacios\n\nLetra: $dletterserial\nNúmero: $i\n\n")
+          dlg_serial "Formulario de Serialización de Directorios- Rango" "msgbox"
+          orders
+        fi
+
+        # Selección de directorio
+
+        dselectdir=$(dialog --title "\Z0Serialización de Directorios - Seleccionar Directorio" \
+          --backtitle "$BACKTITLESERIALIZE" --colors --stdout \
+          --fselect "$dialogdest" "$FSHEIGHT" "$FSWIDTH")
+        sexit=$?
+        if [ "$sexit" = 1 ] || [ "$sexit" = 255 ]; then
+          MSG_SERIAL=$(echo "\nCANCELADO (Cod $sexit)")
+          dlg_serial "Serialización de Dicrectorios - Seleccionar Directorio" "msgbox"
+          orders
+        fi
+        if [ ! -d "$dselectdir" ] || [ -f "$dselectdir" ]; then
+          MSG_SERIAL=$(echo "\nDirectorio no existe o ha seleccionado un archivo. Seleccione un directorio existente.")
+          dlg_serial "Serialización de Directorios - Seleccionar Directorio" "msgbox"
+          orders 
+        fi
+
+        # Checking if dryncs and mdialog_conf exists
+
+        cd "$dselectdir"
+        if [ -f "dryncs" ] || [ -f "mdialog_conf" ]; then
+          MSG_SERIAL=$(echo "\nEL Script será detenido, no puede renombrarse así mismo. (dryncs - mdialog_conf, escoja otro directorio")
+          dlg_serial "Serialización de Directorios" "msgbox"
+          cd "$PWDSCRIPT"
+          return
+        fi
+
+        # Ultimate Advice
+
+        MSG_SERIAL="$(echo "\nSE SERIALIZARÁ CON::\n\nLetra: $dletterserial\nNúmero Inicial: $i\nRuta:\n$dselectdir\n\nDESEA CONTINUAR?\n\n")"
+        dlg_serial "Serialización de Directorios - Rango" "yesno"
+        sexit=$?
+        if [ "$sexit" = 1 ] || [ "$sexit" = 255 ]; then
+          MSG_SERIAL=$(echo "\nCANCELADO (Cod. $sexit)")
+          dlg_serial "Serialización de Directorios" "msgbox"
+          orders
+        fi
+
+        # starting serialize files
+        
+        if [ -f "directorios-serializados.txt" ] || [ -f "directorios-rangos.txt" ] ; then
+          rm -f "directorios-serializados.txt" "directorios-rangos.txt"
+        fi
+
+        # checking if exists files in the selectd directory for serialize
+
+        for f in *
+        do
+          if [ -f "$f" ]; then
+            MSG_SERIAL=$(echo "\nExisten archivos, escoja una ruta donde solo existan directorios para serializar.\n\n (Cod. true test -f file)")
+            dlg_serial "Serialización de Directorios" "msgbox"
+            cd "$PWDSCRIPT"
+            return 1
+          fi
+        done
+
+        # init serialization
+
+        for f in * 
+        do
+          t=$((i++))
+          mv -n -- "$f" "$f-$dletterserial$t"
+          echo "$f-$dletterserial$t" >> directorios-serializados.txt
+          echo "$dletterserial$t" >> directorios-rangos.txt
+        done
+        MSG_SERIAL=$(echo "\nSe han serializado los directorios. Una lista generada de los números serializados se encuentran en:\n\n${dselectdir}\n\n- directorios-serializados.txt\n- directorios-rangos.txt")
+        dlg_serial "Serialización de Directorios" "msgbox"
+        cd "$PWDSCRIPT"
+        return 
+      fi
+      break
+      ;;
+    255)
+      serialcancel "AVISO"
+      MSG_SERIAL="$(echo "\nCANCELADO (Cod. $sexit)")"
+      dlg_serial "Serialización de Archivos y Directorios" "msgbox"
+      orders
+      break
+      ;;
+  esac
 }
 main
