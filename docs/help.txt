@@ -15,10 +15,11 @@ Index
 - Mounting samba resources in Windows
 - Explaining command options used with rsync
 - Explaining reports
+- Serialize files or directorios
 
 - WHAT THIS SCRIPT DOES
 
-  Scan/Collects serialized files from Local PC/Network
+  Scan/Collects serialized files from Local/Network
   PC's and puts it in a text file as a database to
   write down the files you want to copy (locally/network)
   to another Directory/PC/USB Stick.
@@ -37,18 +38,20 @@ Index
  in fallrepos file as database, 'db/fallrepos'
                |
               PC3
-       +--------------+
-       | file1-F1.mp4 |   
-       | file2-F2.mp4 |
-       | file3-F3.mp4 |
-       | file4-F4.mp4 |
-       +--------------+ 
+  +------------------------------------------------+
+  | /my-local-pc3/files/file..n-F..n.mp4           |   
+  | /my-local-pc3/files/file..n-F..n.mp4           |   
+  | /PC1/shared-samba-resource-1/path/file1-F1.mp4 |
+  | /PC1/shared-samba-resource-1/path/file2-F2.mp4 |
+  | /PC2/shared-samba-resource-2/path/file3-F3.mp4 |
+  | /PC2/shared-samba-resource-2/path/file4-F4.mp4 |
+  +------------------------------------------------+ 
 
   I  want copy  the file2-F2.mp4 and file3-F3.mp4
 
   Write the serial "F2 and F3" 1 by 1 line to an text file,
   by defect fcid.txt, but you can use any text file you
-  create, it doen't matter if it's uppercase or lowercase.
+  create, it does't matter if it's uppercase or lowercase.
 
   fcid.txt content
 
@@ -56,7 +59,6 @@ Index
   F3
 
   Use the module Movies for copy this listed files from fcid.txt.
-
               
 - FIRST CONFIGURE THE PROGRAM IF NOT WILL FAIL
 
@@ -69,6 +71,7 @@ Index
 
   Fill the medialog_conf file, inside the file there are examples:
 
+  * Path to dialog, rsync programs
   * Path source, target for shortcut navigation files (optional)
   * Orders, file by default for create reports and order list
   * Path logs
@@ -122,8 +125,9 @@ Index
   TAB, arroy keys for jump the fields, or write in manual the path
   and files.
 
-  For rename with serialized name, there are scripts and programs
-  for automate the renamed files in the Readme.
+  For rename with serialized name you can use in the menu
+  1 Open or create order list > 9 serialize file or directorios,
+  there are scripts and programs  for automate the renamed files in the Readme.
   https://github.com/ekardian/dryncsnsx
   
   1. Write the serialized files you want to copy to a
@@ -268,3 +272,24 @@ For more details about the recursion copy check the 'man rsync'.
   # Header receipt/infoice
   # Seller details
   # Footer receipt/invoice
+
+- SERIALIZE FILES OR DIRECTORIES
+
+  In menu option: 1 then 9
+
+  How this work for a file?
+  You can write at the end file a letter with a number like this
+  Letter F with initial number like 1 and i have 3 files inside a directory
+  Result:
+
+  video-a.mp4 -> video-a-F1.mp4
+  video-b.mp4 -> video-b-F2.mp4
+  video-c.mp4 -> video-c-F3.mp4
+  
+
+  How this work in directories?
+  The same like files
+ 
+  ./Álbum-a -> ./Álbum-a-F1
+  ./Álbum-b -> ./Álbum-b-F2
+  ./Álbum-c -> ./Álbum-c-F3
