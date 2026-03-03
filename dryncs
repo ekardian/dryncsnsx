@@ -724,12 +724,18 @@ reportcancel () {
 
 # mktemp - trap function - print the directory from where is executed
 
+script_path () {
+  NAMESCRIPT="$(basename "$0")" # show namescript executed dryncs
+  DIRSCRIPT="$(dirname "$0")"   # show directory from where is executed dryncs
+  PWDSCRIPT="$(pwd)"            # show the absolute path from where is executed
+                                # the step NAMESCRIPT + DIRSCERIPT is needed for PWDSCRIPT
+}
+
 tempxall () {
   NAMESCRIPT="$(basename "$0")"
   DIRSCRIPT="$(dirname "$0")"
   PWDSCRIPT="$(pwd)"
   TMPDIR="$PWDSCRIPT/tmp"
-  #TMPDIR="./tmp"
   # Removing created temp files in unexpected bash exit
   trap 'rm -f -- "$TMPDIR"/*' EXIT
 }
@@ -2222,7 +2228,7 @@ if [[ "$sexit" = 0 ]]; then
 
           clear
           copyprogress
-          rsync -ah --info=progress2 --log-file="$rsynclog" "$fuente" "$destino"
+          "$RSYNC" -ah --info=progress2 --log-file="$rsynclog" "$fuente" "$destino"
           copiados=$(echo -e "  * $line" >> "$copiadoslog")
           let counterc=counterc+1
         else
@@ -2316,7 +2322,7 @@ if [[ "$sexit" = 0 ]]; then
             fuente=$(grep -Piwm 1 "$line" "$mallrepos")
             clear
             copyprogress
-            rsync -ah --info=progress2 --log-file="$rsynclog" "$fuente" "$destino"
+            "$RSYNC" -ah --info=progress2 --log-file="$rsynclog" "$fuente" "$destino"
             copiados=$(echo -e "  * $line" >> "$copiadoslog")
             let counterc=counterc+1
           else
@@ -2409,7 +2415,7 @@ if [[ "$sexit" = 0 ]]; then
           fuente=$(grep -Piwm 1 "$line" "$jallrepos")
           clear
           copyprogress
-          rsync -ah --info=progress2 --log-file="$rsynclog" "$fuente" "$destino"
+          "$RSYNC" -ah --info=progress2 --log-file="$rsynclog" "$fuente" "$destino"
           copiados=$(echo -e "  * $line" >> "$copiadoslog")
           let counterc=counterc+1
         else
@@ -2502,7 +2508,7 @@ if [[ "$sexit" = 0 ]]; then
           fuente=$(grep -Piwm 1 "$line" "$aallrepos")
           clear
           copyprogress
-          rsync -ah --info=progress2 --log-file="$rsynclog" "$fuente" "$destino"
+          "$RSYNC" -ah --info=progress2 --log-file="$rsynclog" "$fuente" "$destino"
           copiados=$(echo -e "  * $line" >> "$copiadoslog")
           let counterc=counterc+1
         else
@@ -2607,7 +2613,7 @@ if [[ "$?" = 0 ]]; then
           
           clear
           copyprogress
-          rsync -ah --info=progress2 --log-file="$rsynclog" "$fuente" "$destino"
+          "$RSYNC" -ah --info=progress2 --log-file="$rsynclog" "$fuente" "$destino"
           copiados=$(echo -e "  * $line" >> "$copiadoslog")
           let counterc=counterc+1
         else
@@ -2714,7 +2720,7 @@ if [[ "$sexit" = 0 ]]; then
          
           clear
           copyprogress 
-          rsync -ah --info=progress2 --log-file="$rsynclog" "$fuente" "$destino"
+          "$RSYNC" -ah --info=progress2 --log-file="$rsynclog" "$fuente" "$destino"
           copiados=$(echo -e "  * $line" >> "$copiadoslog")
           let counterc=counterc+1
         else
@@ -3029,8 +3035,9 @@ echo ""
       ;;
       "Ver el mdialog_conf")
         clear
-        # Show variables from medialog 
-        verconfig=$(grep -E "^(.*=)+" mdialog_conf)
+        script_path
+        # Show variables from mdialog_conf 
+        verconfig=$(grep -E "^(.*=)+" ${PWDSCRIPT}/mdialog_conf)
         dialog --title "\Z0Configuraciones" \
           --colors --ok-label "Cerrar" --stdout \
           --msgbox "$verconfig" 31 82
@@ -3041,11 +3048,11 @@ echo ""
         clear
         tempxall
         tempconf=$(mktemp -p "$TMPDIR")
-        configfile="./mdialog_conf"
+        configfile="${PWDSCRIPT}/mdialog_conf"
         
         ans=$(dialog --title "\Z0Configuración" \
           --colors --ok-label "Guardar" --stdout \
-          --form "Para más opciones de configuración, configure manualmente el archivo ./mdialog_conf. Bases de Datos, Logs, otros. " 25 68 17 \
+          --form "Para más opciones de configuración, configure manualmente el archivo mdialog_conf. Bases de Datos, Logs, otros. " 25 68 17 \
           "# A donde voy a copiar #"           1 1 ""                1 0 0 0 \
           "Destino:"                           2 1 "$dialogdest"     2 12 50 100 \
           "# Desde donde voy a copiar #"       3 1 ""                3 0 0 0 \
@@ -3312,7 +3319,8 @@ echo ""
 
 helpman () {
   clear
-  HELPERMAN="./docs/help.txt"
+  script_path
+  HELPERMAN="${PWDSCRIPT}/docs/help.txt"
   if [[ -f "$HELPERMAN" ]]; then
     dialog --title "\Z0Ayuda" \
       --colors --stdout \
@@ -3500,20 +3508,8 @@ echo ""
 # PROCEDURE FOR SERIALIZE FILES AND DIRECTORIES
 
 #######################
-# seriefiles functions
+# serialfiles functions
 #######################
-
-rmTmpSerial () {
-  clear
-  echo -e ""
-  echo -e "SE CERRARÁ EL PROGRAMA, ELIMINANDO TEMPORALES..."
-  echo -e ""
-  rm -f -- "$TMPDIR"/*
-  sleep 3
-  echo -e "VUELVA A ABRIR EL PROGRAMA dryncsnsx"
-  echo -e ""
-  exit 0
-}
 
 # Function for dialog msg, yesno with default size option
 

@@ -14,6 +14,9 @@
 # Path to dialog program
 DLG="/usr/bin/dialog"
 
+# Path to rsync program
+RSYNC="/usr/bin/rsync"
+
 # If you make a bad configuration?, use the default configuration again.
 # cd ~/repository-cloned
 # cp -v mdialog_conf.inc mdialog_conf
