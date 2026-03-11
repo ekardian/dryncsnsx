@@ -6,7 +6,7 @@ Crear Archivo de texto en un directorio seleccionado.
    seleccionando con la tecla barra espaciadora, o escribir
    la ruta ejemplo:
    /home/usuario/Documentos/
-   y presionar la barra espaciadora.
+   Luego presionar Enter o Click en botón <Seleccionar>
 
 2. Se abre un formulario, escribir el nombre del archivo,
    ejemplo mi-lista.txt
