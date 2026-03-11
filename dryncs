@@ -28,12 +28,15 @@
 #
 #          FILE: dryncs
 #
-#         USAGE: 
+#         USAGE:
+#                Check requeriments more below (Linux and Cygwin Windows).
+#
 #                mkdir ~/Programs && cd $_
 #                clone git https://github.com/ekardian/dryncsnsx.git dryncsnsx.git
 #                cd dryncsnsx.git 
 #                chmod 755 dryncs
-#                run ./dryncs
+#                ./dryncs
+#                
 #                configure dryncsnsx with option 9 Configuración -> 9 Configuración
 #                enjoy!!!
 #                
@@ -43,7 +46,7 @@
 #                in your .bashrc or .bash_aliases
 #                add this lines at the end.
 #
-#                function dryncsnsx () {
+#                dryncsnsx () {
 #                  # Exit if not find the path $HOME/Programs/dryncsnsx.git
 #                  cd "$HOME"/Programs/dryncsnsx.git || exit
 #                  ./dryncs
@@ -57,25 +60,42 @@
 #                enjoy!!!
 #
 #                Try scenes populating dirs an files for test dryncsnsx
-#                with the scripts populate-dirs-files and populate-dirs-files-ns
+#                with the scripts docs/populate-dirs-files and docs/populate-dirs-files-ns
 #
 #   DESCRIPTION: Copy serialized files listed from a text file
 #                from one local pc o remote pc to anywhere: pc, usb stick, etc.
 #
 #       OPTIONS: in config file 'mdialog_conf'
 #
-#  REQUIREMENTS: rsync, dialog, bash 5.2, samba server, samba client, lsblk, blkid,
-#                perl, coreutils
+#  REQUIREMENTS: --- Linux ---
+#                rsync, dialog, bash 5.2+, bc, samba server, samba client, lsblk, blkid,
+#                perl, coreutils.
+#
+#                Install requeriments.
+#                sudo apt install rsync dialog bc samba lsblk blkid perl coreutils
+#                
+#                For next features install optionally
+#                ntfs-3g cifsutils ffmpeg exiftool mkvtoolnix
+#
+#                --- Cygwin Windows 10+ ---
+#                Same Linux requeriments.
+#                In Cygwin options change Configuration for Text to UTF-8, for prevent
+#                crashes with the form inputs.
+#
+#                For reports the package coreutils, contains tr, fold. With this
+#                command the module report can print the design report.
 #
 #          BUGS: None. If you saw any -> https://github.com/ekardian/dryncsnsx/issues
 #
 #                Tested with https://www.shellcheck.net or from bash command
-#                for Debian 12
+#                for Debian 12, 13
 #                $ sudo apt install shellcheck
 #                $ shellsheck dryncs
 #
 #         NOTES: Tested in:
 #                  - debian 12
+#                  - debian 13
+#                  - termux
 #                  - Linux Mint 22.1
 #                  - Windows 10 x64 bits  with Cygwin
 #                (Linux) For Remote copies add the resources you wanna share to smb.conf
@@ -87,15 +107,13 @@
 #                github https://github.com/ekardian/dryncsnsx
 #                Youtube Channel https://www.youtube.com/@biostech9663/videos
 #
-#       CREATED: 2026/01/13 04:19
+#       CREATED: 2026/03/08 22:57
 #
-#      REVISION: 4.1-stable
+#      REVISION: 4.2.2-stable
 #
 #  NEW FEATURES: Some:
-#                - Music Module now has the option to search by tracks and albums
-#                - Help button and updated help module
-#                - new database for module music db/xmallrepos2 populated now with columns
-#                      <file number> <track size> <track name>
+#                - Fixed some issues with backtiles and dialogs
+#                - Optmized code
 #
 #      DONATION: https://github.com/ekardian/dryncsnsx#donation
 #
@@ -112,48 +130,67 @@
 #######################
 ##    CONFIGURACIÓN   #
 #######################
-##
+
 ## set -e break if a error happen
-#
-##set -e
-#
+#set -e
+
 ## set -x break if you're debugging
-#
-##set -x
-#
+#set -x
+
 ## Config File
-#
 . ./mdialog_conf
-#
+
 ########################
 ##  FIN CONFIGURACIÓN  #
 ########################
-#
+
 ## Colors and lines
-#
 ci="\e[33m"
 brci="\e[1;41;33m" # bold, red background, yellow foreground
 co="\e[0m"
 lin="echo -e ${ci}-----------------------------------------${co}"
 
-VERSION="4.2.1-unstable"
+# Backtitles
+
+VERSION="4.2.2-stable"
 
 SCRIPTNAME="dryncsnsx"
 
 BACKTITLE="$SCRIPTNAME - $VERSION"
 
-BACKTITLEVIDEO="Módulo de videos - $SCRIPTNAME - $VERSION"
-BACKTITLEMUSIC="Módulo de Música - $SCRIPTNAME - $VERSION"
-BACKTITLEJUEGOS="Módulo de Juegos - $SCRIPTNAME - $VERSION"
-BACKTITLEAPPS="Módulo de Apps - $SCRIPTNAME - $VERSION"
-BACKTITLELIBROS="Módulo de Libros - $SCRIPTNAME - $VERSION"
-BACKTITLECOMICS="Módulo de Comics - $SCRIPTNAME - $VERSION"
+BT_VIDEO="Módulo Copia de Videos - $SCRIPTNAME - $VERSION"
+BT_MUSIC="Módulo Copia de Música - $SCRIPTNAME - $VERSION"
+BT_JUEGOS="Módulo Copia de Juegos - $SCRIPTNAME - $VERSION"
+BT_APPS="Módulo Copia de Apps - $SCRIPTNAME - $VERSION"
+BT_LIBROS="Módulo Copia de Libros - $SCRIPTNAME - $VERSION"
+BT_COMICS="Módulo Copia de Comics - $SCRIPTNAME - $VERSION"
 
-# Tools
+# Orders backtitles
+BT_ORDER_VIDEO="Lista de Pedido - Videos - $SCRIPTNAME - $VERSION"
+BT_ORDER_MUSIC="Lista de Pedido - Música - $SCRIPTNAME - $VERSION"
+BT_ORDER_JUEGOS="Lista de Pedido - Juegos - $SCRIPTNAME - $VERSION"
+BT_ORDER_APPS="Lista de Pedido - Apps - $SCRIPTNAME - $VERSION"
+BT_ORDER_LIBROS="Lista de Pedido - Libros - $SCRIPTNAME - $VERSION"
+BT_ORDER_COMICS="Lista de Pedido - Comics - $SCRIPTNAME - $VERSION"
+
+# Reports backtitles
+BT_REPORT_VIDEO="Reporte - Videos - $SCRIPTNAME - $VERSION"
+BT_REPORT_MUSIC="Reporte - Música - $SCRIPTNAME - $VERSION"
+BT_REPORT_JUEGOS="Reporte - Juegos - $SCRIPTNAME - $VERSION"
+BT_REPORT_APPS="Reporte - Apps - $SCRIPTNAME - $VERSION"
+BT_REPORT_LIBROS="Reporte - Libros - $SCRIPTNAME - $VERSION"
+BT_REPORT_COMICS="Reporte - Comics - $SCRIPTNAME - $VERSION"
+
+# Configuration backtitles
+BT_CONFIG="Configuración - $SCRIPTNAME - $VERSION"
+
+# Tools backtitles
 
 # Serialize files/dirs
-BACKTITLESERIALIZE="Herramienta de Serialización - $SCRIPTNAME - $VERSION"
-
+BT_SERIALIZE="Herramienta de Serialización - $SCRIPTNAME - $VERSION"
+# Create files
+BT_CREATE_FILE="Herramiento de Creación de Archivos - $SCRIPTNAME - $VERSION"
+ 
 # TRAP's
 # capture the key combo exit INT -> CTRL + C
 
@@ -206,18 +243,12 @@ userExit () {
   echo ""
   exit 0
 }
-# DIALOG Button
-
-DIALOG_OK=0
-DIALOG_CANCEL=1
-DIALOG_ESC=255
-
 
 ######################
-# dialog heigth width
+# dialog dimentions
 ######################
 
-# MENU height x width x menu-height
+# Main menu height x width x menu-height
 MENUH=0
 MENUW=0
 MENUSCL=8
@@ -275,14 +306,6 @@ esac
 # Advice functions 
 ###################
 
-# Message if files/paths not exist
-
-msgnotexist () {
-  dialog --title "\Z0Warning" \
-    --colors --ok-label "Cerrar" --stdout \
-    --msgbox "$1 No Existe" 0 0
-}
-
 # Data register for customers: name client, date, log
 
 customerdatareg () {
@@ -290,402 +313,411 @@ customerdatareg () {
   logrip=$(echo -e "\n\n--Cliente: $cliente - $regdate" >> "$fallidoslog")
 }
 
-# Message about Database registers
-
-display_result () {
-  dialog --title "\Z0$1" \
-    --colors --ok-label "Cerrar" --no-collapse \
-    --msgbox "$result" 0 0
+dlg_msg () {
+  "$DLG" --title "\Z0$1" \
+    --backtitle "$3" --colors --ok-label "Cerrar" --stdout \
+    --"$2" "$MSG" 0 0
 }
 
 ###################
 # Orders functions
 ###################
 
-# function orders info
-
-ordersaved () {
-  orderresult=$(echo "Orden Guardada")
-  dialog --title "\Z0$1" \
-    --colors --cr-wrap --no-collapse \
-    --msgbox "$orderresult" 0 0  
-}
-
-ordercancel () {
-  orderresult=$(echo "Orden No Guardada")
-  dialog --title "\Z0$1" \
-    --colors --no-collapse \
-    --msgbox "$orderresult" 0 0
-}
-
 orders () {
   clear
-echo -e "$SCRIPTNAME - $VERSION\n"
-echo -e "==============================="
-echo -e " Creación de listas de Pedido"
-echo -e "===============================\n"
-echo -e "<- Menú anterior 'Menú Principal'"
-echo ""
+  echo -e "$SCRIPTNAME - $VERSION\n"
+  echo -e "==============================="
+  echo -e " Creación de listas de Pedido"
+  echo -e "===============================\n"
+  echo -e "<- Menú anterior 'Menú Principal'"
+  echo ""
   COLUMNS=12
   local PS3="Opción: "
   echo -e "Escoja una Opción\n"
   select choice in "Películas" "Música" "Juegos"  "Apps" "Libros"  "Comics" "Crear Archivo" "Buscar Archivos" "Serializar Archivos o Carpetas" "Volver al Menú Principal"; do
     case $choice in
       "Películas")
-        # Order películas
+        # Order videos
         # dialog yesno
-        dialog --title "\Z0Escoja una Opción" \
-          --colors --stdout \
-          --yesno "Usar el archivo de pedido por defecto para Vídeos fcid.txt?, si escoge no, abra a continuación el archivo que contiene el pedido." 0 0
+        "$DLG" --title "\Z0Escojer lista de pedido de Videos" \
+          --backtitle "$BT_ORDER_VIDEO" --colors --stdout \
+          --yesno "\nUsar el archivo de pedido por defecto para Vídeos fcid.txt?, si escoge no, abra a continuación el archivo que contiene el pedido." 0 0
         sexit=$?
         if [[ "$sexit" = 0 ]]; then
-          origen=$(dialog --title "\Z0Pedido de Películas" \
-            --colors --ok-label "Guardar" --stdout \
+          origen=$(dialog --title "\Z0Pedido de Videos" \
+            --backtitle "$BT_ORDER_VIDEO" --colors --ok-label "Guardar" --stdout \
             --editbox "$forder" 15 45)
           sexit=$?
           if [[ "$sexit" = 0 ]]; then
             echo "$origen" > "$forder"
-            ordersaved "INFORME"
+            MSG="$(echo "\nOrden guardada (Cod. $sexit)")"
+            dlg_msg "Pedido de Videos" "msgbox" "$BT_ORDER_VIDEO"
             orders
           else
-            ordercancel "INFORME"
+            MSG="$(echo "\nOrden cancelada (Cod. $sexit)")"
+            dlg_msg "Pedido de Videos" "msgbox" "$BT_ORDER_VIDEO"
             orders
           fi
         else
-          otherorigin=$(dialog --title "\Z0Abrir archvo de nuevo pedido de Vídeos" \
-            --colors --ok-label "Seleccionar" --stdout \
+          otherorigin=$(dialog --title "\Z0Abrir archivo de pedido de Vídeo" \
+            --backtitle "$BT_ORDER_VIDEO" --colors --ok-label "Seleccionar" --stdout \
             --fselect "./" "$FSHEIGHT" "$FSWIDTH")
           sexit=$?
           if [[ "$sexit" = "0" ]]; then
             # checking otherorigin variable it is not a file with '! -e' for file/path and '-d' for directory
             if  [[ ! -e "$otherorigin" || -d "$otherorigin" ]]; then
-              msgnotexist "$otherorigin"
+              MSG=$(echo "\n${otherorigin} no existe.")
+              dlg_msg "Orden de pedido de Video" "msgbox" "$BT_ORDER_VIDEO"
               orders 
             else
-              origin=$(dialog --title "\Z0Pedido de Películas" \
-                --colors --stdout \
+              origin=$(dialog --title "\Z0Pedido de Video" \
+                --backtitle "$BT_ORDER_VIDEO" --colors --stdout \
                 --editbox "$otherorigin" 15 45)
               sexit=$?
               if [[ "$sexit" = "0" ]]; then
                 echo "$origin" > "$otherorigin"
-                ordersaved "INFORME"
+                MSG=$(echo "\nOrden guardada (Cod. $sexit)")
+                dlg_msg "Orden de Pedido de Video" "msgbox" "$BT_ORDER_VIDEO"
                 orders
               else
-                ordercancel "INFORME"
+                MSG=$(echo "\nOrden cancelada (Cod. $sexit)")
+                dlg_msg "Orden de Pedido de Video" "msgbox" "$BT_ORDER_VIDEO"
                 orders
               fi
             fi
           else
-            ordercancel "INFORME"
+            MSG=$(echo "\nOrden cancelada (Cod. $sexit)")
+            dlg_msg "Orden de Pedido de Video" "msgbox" "$BT_ORDER_VIDEO"
             orders
           fi
         fi
-
         break
       ;;
       "Música")
         # Order música
         # dialog yesno
-        dialog --title "\Z0Escoja una Opción" \
-          --colors --stdout \
-          --yesno "Usar el archivo de pedido por defecto para Música mcid.txt?, si escoge no, abra a continuación el archivo que contiene el pedido." 0 0
+        "$DLG" --title "\Z0Escojer lista de pedido de Música" \
+          --backtitle "$BT_ORDER_MUSIC" --colors --stdout \
+          --yesno "\nUsar el archivo de pedido por defecto para Música mcid.txt?, si escoge no, abra a continuación el archivo que contiene el pedido." 0 0
         sexit=$?
         if [[ "$sexit" = 0 ]]; then
           origen=$(dialog --title "\Z0Pedido de Música" \
-            --colors --ok-label "Guardar" --stdout \
+            --backtitle "$BT_ORDER_MUSIC" --colors --ok-label "Guardar" --stdout \
             --editbox "$morder" 15 45)
           sexit=$?
           if [[ "$sexit" = 0 ]]; then
             echo "$origen" > "$morder"
-            ordersaved "INFORME"
+            MSG=$(echo "\nOrden guardada (Cod. $sexit)")
+            dlg_msg "Orden de Pedido de Música" "msgbox" "$BT_ORDER_MUSIC"
             orders
           else
-            ordercancel "INFORME"
+            MSG=$(echo "\nOrden cancelada (Cod. $sexit)")
+            dlg_msg "Orden de Pedido de Música" "msgbox" "$BT_ORDER_MUSIC"
             orders
           fi
         else
-          otherorigin=$(dialog --title "\Z0Abrir archvo de nuevo pedido de Música" \
-            --colors --ok-label "Seleccionar" --stdout \
+          otherorigin=$(dialog --title "\Z0Abrir archvo de pedido de Música" \
+            --backtitle "$BT_ORDER_MUSIC" --colors --ok-label "Seleccionar" --stdout \
             --fselect "./" "$FSHEIGHT" "$FSWIDTH")
           sexit=$?
           if [[ "$sexit" = "0" ]]; then
             # checking otherorigin variable it is not a file with '! -e' for file/path and '-d' for directory
             if  [[ ! -e "$otherorigin" || -d "$otherorigin" ]]; then
-              msgnotexist "$otherorigin"
+              MSG=$(echo "\n${otherorigin} no existe.")
+              dlg_msg "Orden de pedido de Música" "msgbox" "$BT_ORDER_MUSIC"
               orders 
             else
               origin=$(dialog --title "\Z0Pedido de Música" \
-                --colors --stdout \
+                --backtitle "$BT_ORDER_MUSIC" --colors --stdout \
                 --editbox "$otherorigin" 15 45)
               sexit=$?
               if [[ "$sexit" = "0" ]]; then
                 echo "$origin" > "$otherorigin"
-                ordersaved "INFORME"
+                MSG=$(echo "\nOrden guardada (Cod. $sexit)")
+                dlg_msg "Orden de Pedido de Música" "msgbox" "$BT_ORDER_MUSIC"
                 orders
               else
-                ordercancel "INFORME"
+                MSG=$(echo "\nOrden cancelada (Cod. $sexit)")
+                dlg_msg "Orden de Pedido de Música" "msgbox" "$BT_ORDER_MUSIC"
                 orders
               fi
             fi
           else
-            ordercancel "INFORME"
+            MSG=$(echo "\nOrden cancelada (Cod. $sexit)")
+            dlg_msg "Orden de Pedido de Música" "msgbox" "$BT_ORDER_MUSIC"
             orders
           fi
         fi
-
         break
       ;;
       "Juegos")
         # Orders juegos
         # dialog yesno
-        dialog --title "\Z0Escoja una Opción" \
-          --colors --stdout \
-          --yesno "Usar el archivo de pedido por defecto para Juegos jcid.txt?, si escoge no, abra a continuación el archivo que contiene el pedido." 0 0
+        "$DLG" --title "\Z0Escojer lista de pedidos de Juegos" \
+          --backtitle "$BT_ORDER_JUEGOS" --colors --stdout \
+          --yesno "\nUsar el archivo de pedido por defecto para Juegos jcid.txt?, si escoge no, abra a continuación el archivo que contiene el pedido." 0 0
         sexit=$?
         if [[ "$sexit" = 0 ]]; then
           origen=$(dialog --title "\Z0Pedido de Juegos" \
-            --colors --ok-label "Guardar" --stdout \
+            --backtitle "$BT_ORDER_JUEGOS" --colors --ok-label "Guardar" --stdout \
             --editbox "$jorder" 15 45)
           sexit=$?
           if [[ "$sexit" = 0 ]]; then
             echo "$origen" > "$jorder"
-            ordersaved "INFORME"
+            MSG=$(echo "\nOrden guardada (Cod. $sexit)")
+            dlg_msg "Orden de Pedido de Juegos" "msgbox" "$BT_ORDER_JUEGOS"
             orders
           else
-            ordercancel "INFORME"
+            MSG=$(echo "\nOrden cancelada (Cod. $sexit)")
+            dlg_msg "Orden de Pedido de Juegos" "msgbox" "$BT_ORDER_JUEGOS"
             orders
           fi
         else
-          otherorigin=$(dialog --title "\Z0Abrir archvo de nuevo pedido de Juegos" \
-            --colors --ok-label "Seleccionar" --stdout \
+          otherorigin=$(dialog --title "\Z0Abrir archvo de pedido de Juegos" \
+            --backtitle "$BT_ORDER_JUEGOS" --colors --ok-label "Seleccionar" --stdout \
             --fselect "./" "$FSHEIGHT" "$FSWIDTH")
           sexit=$?
           if [[ "$sexit" = "0" ]]; then
             # checking otherorigin variable it is not a file with '! -e' for file/path and '-d' for directory
             if  [[ ! -e "$otherorigin" || -d "$otherorigin" ]]; then
-              msgnotexist "$otherorigin"
+              MSG=$(echo "\n${otherorigin} no existe")
+              dlg_msg "Orden de Pedido de Juegos" "msgbox" "$BT_ORDER_JUEGOS"
               orders 
             else
               origin=$(dialog --title "\Z0Pedido de Juegos" \
-                --colors --stdout \
+                --backtitle "$BT_ORDER_JUEGOS" --colors --stdout \
                 --editbox "$otherorigin" 15 45)
               sexit=$?
               if [[ "$sexit" = "0" ]]; then
                 echo "$origin" > "$otherorigin"
-                ordersaved "INFORME"
+                MSG=$(echo "\nOrden guardada (Cod. $sexit)")
+                dlg_msg "Orden de Pedido de Juegos" "msgbox" "$BT_ORDER_JUEGOS"
                 orders
               else
-                ordercancel "INFORME"
+                MSG=$(echo "\nOrden cancelada (Cod. $sexit)")
+                dlg_msg "Orden de Pedido de Juegos" "msgbox" "$BT_ORDER_JUEGOS"
                 orders
               fi
             fi
           else
-            ordercancel "INFORME"
+            MSG=$(echo "\nOrden cancelada (Cod. $sexit)")
+            dlg_msg "Orden de Pedido de Juegos" "msgbox" "$BT_ORDER_JUEGOS" 
             orders
           fi
         fi
-
         break
       ;;
       "Apps")
         # Orders apps
         # dialog yesno
-        dialog --title "\Z0Escoja una Opción" \
-          --colors --stdout \
-          --yesno "Usar el archivo de pedido por defecto para Apps acid.txt?, si escoge no, abra a continuación el archivo que contiene el pedido." 0 0
+        "$DLG" --title "\Z0Escojer lista de pedidos de Apps" \
+          --backtitle "$BT_ORDER_APPS" --colors --stdout \
+          --yesno "\nUsar el archivo de pedido por defecto para Apps acid.txt?, si escoge no, abra a continuación el archivo que contiene el pedido." 0 0
         sexit=$?
         if [[ "$sexit" = 0 ]]; then
           origen=$(dialog --title "\Z0Pedido de Apps" \
-            --colors --ok-label "Guardar" --stdout \
+            --backtitle "$BT_ORDER_APPS" --colors --ok-label "Guardar" --stdout \
             --editbox "$aorder" 15 45)
           sexit=$?
           if [[ "$sexit" = 0 ]]; then
             echo "$origen" > "$aorder"
-            ordersaved "INFORME"
+            MSG=$(echo "\nOrden guardada (Cod. $sexit)")
+            dlg_msg "Orden de Pedido de Apps" "msgbox" "$BT_ORDER_APPS"
             orders
           else
-            ordercancel "INFORME"
+            MSG=$(echo "\nOrden cancelada (Cod. $sexit)")
+            dlg_msg "Orden de Pedido de Apps" "msgbox" "$BT_ORDER_APPS"
             orders
           fi
         else
-          otherorigin=$(dialog --title "\Z0Abrir archvo de nuevo pedido de Apps" \
-            --colors --ok-label "Seleccionar" --stdout \
+          otherorigin=$(dialog --title "\Z0Abrir archvo de pedido de Apps" \
+            --backtitle "$BT_ORDER_APPS" --colors --ok-label "Seleccionar" --stdout \
             --fselect "./" "$FSHEIGHT" "$FSWIDTH")
           sexit=$?
           if [[ "$sexit" = "0" ]]; then
             # checking otherorigin variable it is not a file with '! -e' for file/path and '-d' for directory
             if  [[ ! -e "$otherorigin" || -d "$otherorigin" ]]; then
-              msgnotexist "$otherorigin"
+              MSG=$(echo "${otherorigin}" no existe)
+              dlg_msg "Orden de pedidos de Apps" "msgbox" "$BT_ORDER_APPS"
               orders 
             else
               origin=$(dialog --title "\Z0Pedido de Apps" \
-                --colors --stdout \
+                --backtitle "$BT_ORDER_APPS" --colors --stdout \
                 --editbox "$otherorigin" 15 45)
               sexit=$?
               if [[ "$sexit" = "0" ]]; then
                 echo "$origin" > "$otherorigin"
-                ordersaved "INFORME"
+                MSG=$(echo "\nOrden guardada (Cod. $sexit)")
+                dlg_msg "Orden de Pedido de Apps" "msgbox" "$BT_ORDER_APPS"
                 orders
               else
-                ordercancel "INFORME"
+                MSG=$(echo "\nOrden cancelada (Cod. $sexit)")
+                dlg_msg "Orden de Pedido de Apps" "msgbox" "$BT_ORDER_APPS"
                 orders
               fi
             fi
           else
-            ordercancel "INFORME"
+            MSG=$(echo "\nOrden cancelada (Cod. $sexit)")
+            dlg_msg "Orden de Pedido de Apps" "msgbox" "$BT_ORDER_APPS"
             orders
           fi
         fi
-
         break
       ;;
       "Libros")
         # Order libros
         # dialog yesno
-        dialog --title "\Z0Escoja una Opción" \
-          --colors --stdout \
-          --yesno "Usar el archivo de pedido por defecto para Libros lcid.txt?, si escoge no, abra a continuación el archivo que contiene el pedido." 0 0
+        "$DLG" --title "\Z0Escojer lista de pedidos de Libros" \
+          --backtitle "$BT_ORDER_LIBROS" --colors --stdout \
+          --yesno "\nUsar el archivo de pedido por defecto para Libros lcid.txt?, si escoge no, abra a continuación el archivo que contiene el pedido." 0 0
         sexit=$?
         if [[ "$sexit" = 0 ]]; then
           origen=$(dialog --title "\Z0Pedido de Libros" \
-            --colors --ok-label "Guardar" --stdout \
+            --backtitle "$BT_ORDER_LIBROS" --colors --ok-label "Guardar" --stdout \
             --editbox "$lorder" 15 45)
           sexit=$?
           if [[ "$sexit" = 0 ]]; then
             echo "$origen" > "$lorder"
-            ordersaved "INFORME"
+            MSG=$(echo "\nOrden guardada (Cod. $sexit)")
+            dlg_msg "Orden de Pedido de Libros" "msgbox" "$BT_ORDER_LIBROS"
             orders
           else
-            ordercancel "INFORME"
+            MSG=$(echo "\nOrden cancelada (Cod. $sexit)")
+            dlg_msg "Orden de Pedido de Libros" "msgbox" "$BT_ORDER_LIBROS"
             orders
           fi
         else
-          otherorigin=$(dialog --title "\Z0Abrir archvo de nuevo pedido de Libros" \
-            --colors --ok-label "Seleccionar" --stdout \
+          otherorigin=$(dialog --title "\Z0Abrir archvo de pedido de Libros" \
+            --backtitle "$BT_ORDER_LIBROS" --colors --ok-label "Seleccionar" --stdout \
             --fselect "./" "$FSHEIGHT" "$FSWIDTH")
           sexit=$?
           if [[ "$sexit" = "0" ]]; then
             # checking otherorigin variable it is not a file with '! -e' for file/path and '-d' for directory
             if  [[ ! -e "$otherorigin" || -d "$otherorigin" ]]; then
-              msgnotexist "$otherorigin"
+              MSG=$(echo "${otherorigin}" no existe)
+              dlg_msg "Orden de pedidos de Libros" "msgbox" "$BT_ORDER_LIBROS"
               orders 
             else
               origin=$(dialog --title "\Z0Pedido de Libros" \
-                --colors --stdout \
+                --backtitle "$BT_ORDER_LIBROS" --colors --stdout \
                 --editbox "$otherorigin" 15 45)
               sexit=$?
               if [[ "$sexit" = "0" ]]; then
                 echo "$origin" > "$otherorigin"
-                ordersaved "INFORME"
+                MSG=$(echo "\nOrden guardada (Cod. $sexit)")
+                dlg_msg "Orden de Pedido de Libros" "msgbox" "$BT_ORDER_LIBROS"
                 orders
               else
-                ordercancel "INFORME"
+                MSG=$(echo "\nOrden cancelada (Cod. $sexit)")
+                dlg_msg "Orden de Pedido de Libros" "msgbox" "$BT_ORDER_LIBROS"
                 orders
               fi
             fi
           else
-            ordercancel "INFORME"
+            MSG=$(echo "\nOrden cancelada (Cod. $sexit)")
+            dlg_msg "Orden de Pedido de Apps" "msgbox" "$BT_ORDER_LIBROS"
             orders
           fi
         fi
-
         break
       ;;
       "Comics")
         # Order comics
         # dialog yesno
-        dialog --title "\Z0Escoja una Opción" \
-          --colors --stdout \
-          --yesno "Usar el archivo de pedido por defecto para Comics ccid.txt?, si escoge no, abra a continuación el archivo que contiene el pedido." 0 0
+        "$DLG" --title "\Z0Escojer lista de pedidos de Comics" \
+          --backtitle "$BT_ORDER_COMICS" --colors --stdout \
+          --yesno "\nUsar el archivo de pedido por defecto para Comics ccid.txt?, si escoge no, abra a continuación el archivo que contiene el pedido." 0 0
         sexit=$?
         if [[ "$sexit" = 0 ]]; then
           origen=$(dialog --title "\Z0Pedido de Comics" \
-            --colors --ok-label "Guardar" --stdout \
+            --backtitle "$BT_ORDER_COMICS" --colors --ok-label "Guardar" --stdout \
             --editbox "$corder" 15 45)
           sexit=$?
           if [[ "$sexit" = 0 ]]; then
             echo "$origen" > "$corder"
-            ordersaved "INFORME"
+            MSG=$(echo "\nOrden guardada (Cod. $sexit)")
+            dlg_msg "Orden de Pedido de Comics" "msgbox" "$BT_ORDER_COMICS"
             orders
           else
-            ordercancel "INFORME"
+            MSG=$(echo "\nOrden cancelada (Cod. $sexit)")
+            dlg_msg "Orden de Pedido de Comics" "msgbox" "$BT_ORDER_COMICS"
             orders
           fi
         else
-          otherorigin=$(dialog --title "\Z0Abrir archvo de nuevo pedido de Comics" \
-            --colors --ok-label "Seleccionar" --stdout \
+          otherorigin=$(dialog --title "\Z0Abrir archvo de pedido de Comics" \
+            --backtitle "$BT_ORDER_COMICS" --colors --ok-label "Seleccionar" --stdout \
             --fselect "./" "$FSHEIGHT" "$FSWIDTH")
           sexit=$?
           if [[ "$sexit" = "0" ]]; then
             # checking otherorigin variable it is not a file with '! -e' for file/path and '-d' for directory
             if  [[ ! -e "$otherorigin" || -d "$otherorigin" ]]; then
-              msgnotexist "$otherorigin"
+              MSG=$(echo "${otherorigin}" no existe)
+              dlg_msg "Orden de pedidos de Comics" "msgbox" "$BT_ORDER_COMICS"
               orders 
             else
               origin=$(dialog --title "\Z0Pedido de Comics" \
-                --colors --stdout \
+                --backtitle "$BT_ORDER_COMICS" --colors --stdout \
                 --editbox "$otherorigin" 15 45)
               sexit=$?
               if [[ "$sexit" = "0" ]]; then
                 echo "$origin" > "$otherorigin"
-                ordersaved "INFORME"
+                MSG=$(echo "\nOrden guardada (Cod. $sexit)")
+                dlg_msg "Orden de Pedido de Comics" "msgbox" "$BT_ORDER_COMICS"
                 orders
               else
-                ordercancel "INFORME"
+                MSG=$(echo "\nOrden cancelada (Cod. $sexit)")
+                dlg_msg "Orden de Pedido de Comics" "msgbox" "$BT_ORDER_COMICS"
                 orders
               fi
             fi
           else
-            ordercancel "INFORME"
+            MSG=$(echo "\nOrden cancelada (Cod. $sexit)")
+            dlg_msg "Orden de Pedido de Comics" "msgbox" "$BT_ORDER_COMICS"
             orders
           fi
         fi
-
         break
       ;;
       "Crear Archivo")
         origin=$(dialog --title "\Z0Seleccionar un Directorio" \
-          --colors --ok-label "Seleccionar" --stdout --help-button \
+          --backtitle "$BT_CREATE_FILE" --colors --ok-label "Seleccionar" --stdout --help-button \
           --fselect "$dialogorig" "$FSHEIGHT" "$FSWIDTH")
         # check if exist a file for not rename and if its not a directory for create a new file
         sexit=$?
         if [[ "$sexit" = "0"  ]]; then
           if [[ ! -e "$origin" || -f "$origin" ]]; then
-            dialog --title "\Z0Warning" \
-              --colors --ok-label "Cerrar" --stdout \
-              --msgbox "Seleccionó:\n\n\Z7$origin \n\n\Z0* La ruta del directorio es incorrecta o seleccionó un archivo existente.\n* Tiene que  seleccionar un directorio para crear el nuevo archivo" 0 0
+            MSG=$(echo "Seleccionó:\n\n\Z7$origin \n\n\Z0* La ruta del directorio es incorrecta o seleccionó un archivo existente.\n* Tiene que  seleccionar un directorio para crear el nuevo archivo")
+            dlg_msg "Creación de Archivo" "msgbox" "$BT_CREATE_FILE"
             orders
           else
-            neworder=$(dialog --title "\Z0Nombre de Archivo" \
-              --colors --ok-label "Crear Archivo" --stdout \
+            neworder=$(dialog --title "\Z0Creación de Archivo" \
+              --backtitle "$BT_CREATE_FILE" --colors --ok-label "Crear Archivo" --stdout \
               --inputbox "" 0 0)
             sexit=$?
             if [[ "$sexit" = 0 ]]; then
               touch "$neworder" > "$origin"/"$neworder"
-              dialog --title "\Z0AVISO" \
-                --colors --stdout \
-                --msgbox "Archivo \Z7$neworder \Z0creado" 0 0
+              MSG=$(echo "Archivo \Z7$neworder \Z0creado")
+              dlg_msg "Creación de Archivo" "msgbox" "$BT_CREATE_FILE"
               orders
             else
-              dialog --title "\Z0Warning" \
-                --colors --ok-label "Cerrar" --stdout \
-                --msgbox "Se Canceló la creación del archivo" 0 0
+              MSG=$(echo "Cancelado (Cod. $sexit)")
+              dlg_msg "Creación de Archivo" "msgbox" "$BT_CREATE_FILE"
               orders
             fi
           fi
         else
-          if [[ "$sexit" = 1 ]]; then
-            dialog --title "\Z0AVISO" \
-              --colors --ok-label "Cerrar" --stdout \
-              --msgbox "Creación de Archivo Cancelado" 0 0
+          if [ "$sexit" = 1 ] || [ "$sexit" = 255 ]; then
+            MSG=$(echo "\nCancelado (Cod. $sexit)")
+            dlg_msg "Creación de Archivo" "msgbox" "$BT_CREATE_FILE"
             orders
           else
-            HELPERMAN="./docs/1_7_create_file.txt"
-            dialog --title "\ZAyuda" \
-              --colors --stdout \
-              --textbox "$HELPERMAN" 0 0
-            orders
-
+            if [ "$sexit" = 2 ]; then
+              HELPERMAN="./docs/1_7_create_file.txt"
+              dialog --title "\ZCreación de Archivo - Ayuda" \
+                --backtitle "$BT_CREATE_FILE" --colors --stdout \
+                --textbox "$HELPERMAN" 0 0
+              orders
+            fi
           fi
         fi
         break
@@ -711,16 +743,7 @@ echo ""
 
 ####################
 # Reports functions
-# ##################
-
-# Function Report Cancel
-
-reportcancel () {
-  reportresult=$(echo "Reporte Cancelado")
-  dialog --title "\Z0$1" \
-    --colors --ok-label "Cerrar" --stdout --no-collapse \
-    --msgbox "$reportresult" 0 0
-}
+####################
 
 # mktemp - trap function - print the directory from where is executed
 
@@ -728,7 +751,7 @@ script_path () {
   NAMESCRIPT="$(basename "$0")" # show namescript executed dryncs
   DIRSCRIPT="$(dirname "$0")"   # show directory from where is executed dryncs
   PWDSCRIPT="$(pwd)"            # show the absolute path from where is executed
-                                # the step NAMESCRIPT + DIRSCERIPT is needed for PWDSCRIPT
+                                # NAMESCRIPT + DIRSCERIPT is needed for PWDSCRIPT
 }
 
 tempxall () {
@@ -740,31 +763,15 @@ tempxall () {
   trap 'rm -f -- "$TMPDIR"/*' EXIT
 }
 
-#  Function Verifying if we have a directory or the file not exists
-
-need_file_order () {
-  dialog --title "\Z0$1" \
-    --colors --ok-label "Cerrar" --stdout \
-    --msgbox "$origen\n\nes un directorio o el archivo no existe tiene que seleccionar un archivo de texto que contenga el pedido con los IDs de los items" 0 0
-}
-
-# Function Verifying if we have a empty file
-
-empty_file_order () {
-  dialog --title "\Z0$1" \
-    --colors --ok-label "Cerrar" --stdout \
-    --msgbox "El archivo:\n\n'$origen'\n\nestá vacío.\n\nLLene un archivo manualmente con la lista de items de pedido o desde la opción del menú principal - 1) Abrir o Crear lista de pedidos" 0 0
-}
-
 # Function print report
 
-print_report_yes_no () {
-  dialog --title "\Z0$1" \
-    --colors --stdout \
-    --yesno "El Recibo de Pago fue creado en:\n\n${clientreports}${nameexch}_report_print.txt\n\nDesea Imprimir el RECIBO?\n\nSi escoje 'NO', Puede imprimirlo manualmente con lp:\n$ lp reports/<file.txt>\n$ lp -d <printer name> reports/<file.txt>" 0 0
+dlg_report_yesno () {
+  "$DLG" --title "\Z0$1" \
+    --backtitle "$3" --colors --stdout \
+    --"$2" "$MSG_REPORT" 0 0
 }
 
-# Size Forms
+# Size Dialog Forms
 
 FHEIGHT="12"
 FWIDTH="43"
@@ -772,12 +779,12 @@ FRMHEIGHT="5"
 
 reports () {
   clear
-echo -e "$SCRIPTNAME - $VERSION\n"
-echo -e "======================"
-echo -e " Creación de Reportes"
-echo -e "======================\n"
-echo -e "<- Menu anterior 'Menú Principal'"
-echo ""
+  echo -e "$SCRIPTNAME - $VERSION\n"
+  echo -e "======================"
+  echo -e " Creación de Reportes"
+  echo -e "======================\n"
+  echo -e "<- Menu anterior 'Menú Principal'"
+  echo ""
   COLUMNS=12
   local PS3="Opción: "
   echo -e "Escoja una Opción\n"
@@ -786,18 +793,20 @@ echo ""
       "Películas")
         # Report películas
         clear
-        origen=$(dialog --title "\Z0RUTA ARCHIVO" \
-          --colors --ok-label "Seleccionar" --stdout \
+        origen=$(dialog --title "\Z0Abrir archivo para Reporte de Video" \
+          --backtitle "$BT_REPORT_VIDEO" --colors --ok-label "Seleccionar" --stdout \
           --fselect "$dialogorig" "$FSHEIGHT" "$FSWIDTH")
         sexit=$?
         if [[ "$sexit" = 0 ]]; then
           if [[ ! -e "$origen" || -d "$origen" ]]; then
-            need_file_order "Warning"
-            reports
+            MSG=$(echo "\n${origen}\n\nes un directorio o el archivo no existe tiene que seleccionar un archivo de texto que contenga el pedido con los IDs de los items")
+            dlg_msg "Reporte de Video" "msgbox" "$BT_REPORT_VIDEO"
+            return 1
           else
             if [[ -z "$(cat "${origen}")" ]]; then
-              empty_file_order "Warning"
-              reports
+              MSG=$(echo "\nEl archivo:\n\n'${origen}'\n\nestá vacío.\n\nLLene un archivo manualmente con la lista de items de pedido o desde la opción del menú principal - 1) Abrir o Crear lista de pedidos")
+              dlg_msg "Reporte de Video" "msgbox" "$BT_REPORT_VIDEO"
+              return
             fi
             
             pedido=$(cat "$origen")
@@ -909,8 +918,8 @@ echo ""
             let stp="$qtydef"*"$pdef"
 
             # --no-collapse
-            reporting=$(dialog --title "\Z0Lista de Pedido de Películas" \
-               --colors --ok-label "Continuar" --stdout --no-collapse \
+            reporting=$(dialog --title "\Z0Lista de Pedido de Videos" \
+               --backtitle "$BT_REPORT_VIDEO" --colors --ok-label "Continuar" --stdout --no-collapse \
                --msgbox "\n
  Items | Faltan | Tamaño Mb | Tamaño Gb\n
 -------+--------+-----------+-------------\n
@@ -939,8 +948,8 @@ $tempnoitem
 
 # Volcando reporte a ./reports/<Cliente>_report.txt  para impresión
 
-            exchmenu=$(dialog --title "\Z0Creación de Reporte y Recibo" \
-              --colors --ok-label "Generar" --stdout \
+            exchmenu=$(dialog --title "\Z0Creación de Reporte de Video y Recibo" \
+              --backtitle "$BT_REPORT_VIDEO" --colors --ok-label "Generar" --stdout \
               --form "Rellene los campos para generar el recibo de pago" "$FHEIGHT" "$FWIDTH" "$FRMHEIGHT" \
               "Nombre:" 1 1 "" 1 13 22 100 \
               "Monto:" 2 1 "" 2 13 22 10 \
@@ -1002,46 +1011,56 @@ EOF
               
               fold -w 42 "${clientreports}""${nameexch}"_report_video.txt > "${clientreports}""${nameexch}"_report_video_print.txt
               vidreporting=$(cat "${clientreports}""${nameexch}"_report_video_print.txt)
-              dialog --title "\Z0REPORTE DE PELÍCULAS" \
-                --colors --ok-label "Continuar" --stdout --no-collapse \
+              "$DLG" --title "\Z0REPORTE DE VIDEO" \
+                --backtitle "$BT_REPORT_VIDEO" --colors --ok-label "Continuar" --stdout --no-collapse \
                 --msgbox "$vidreporting" 0 0
-              print_report_yes_no "IMPRESIÓN DE REPORTE"
+              MSG_REPORT=$(echo "\nEl Recibo de Pago fue creado en:\n\n${clientreports}${nameexch}_report_print.txt\n\nDesea Imprimir el RECIBO?\n\nSi escoje 'NO', Puede imprimirlo manualmente con lp:\n$ lp reports/<file.txt>\n$ lp -d <printer name> reports/<file.txt>")
+              dlg_report_yesno "Impresión de Reporte de Video" "yesno" "$BT_REPORT_VIDEO"
               sexit=$?
               if [[ "$sexit" = 0 ]]; then
                 lp "${clientreports}""${nameexch}"_report_video_print.txt 
-                reports
+                return
               else
-                reports
+                MSG=$(echo "\nCancelado (Cod. $sexit)")
+                dlg_msg "Reporte de Video" "msgbox" "$BT_REPORT_VIDEO"
+                return
               fi
-              reports
+              return
             else
-              reportcancel "AVISO"
-              reports
+              MSG=$(echo "\nCancelado (Cod. $sexit)")
+              dlg_msg "Reporte de Video" "msgbox" "$BT_REPORT_VIDEO"
+              return
             fi
           fi
         else
-          reportcancel "AVISO"
-          reports
+          MSG=$(echo "\nCancelado (Cod. $sexit)")
+          dlg_msg "Reporte de Video" "msgbox" "$BT_REPORT_VIDEO"
+          return
         fi
         break
       ;;
       "Música")
         clear
-        origen=$(dialog --title "\Z0RUTA ARCHIVO"  \
-          --colors --ok-label "Seleccionar" --stdout \
+        origen=$(dialog --title "\Z0Abrir archivo para Reporte de Música" \
+          --backtitle "$BT_REPORT_MUSIC" --colors --ok-label "Seleccionar" --stdout \
           --fselect "$dialogorig" "$FSHEIGHT" "$FSWIDTH")
         sexit=$?
         if [[ "$sexit" = 0 ]]; then
           if [[ ! -e "$origen" || -d "$origen" ]]; then
-            need_file_order "Warning"
-            reports
+            MSG=$(echo "\n${origen}\n\nes un directorio o el archivo no existe tiene que seleccionar un archivo de texto que contenga el pedido con los IDs de los items")
+            dlg_msg "Reporte de Música" "msgbox" "$BT_REPORT_MUSIC"
+            return 1
           else
             if [[ -z "$(cat "${origen}")" ]]; then
-              empty_file_order "Warning"
-              reports
+              MSG=$(echo "\nEl archivo:\n\n'${origen}'\n\nestá vacío.\n\nLLene un archivo manualmente con la lista de items de pedido o desde la opción del menú principal - 1) Abrir o Crear lista de pedidos")
+              dlg_msg "Reporte de Música" "msgbox" "$BT_REPORT_MUSIC"
+              return
             fi
           
             pedido=$(cat "$origen")
+
+            # Counter
+            qty=0
             qtyaud=0
 
             # ADDED FILTER NO ITEMS
@@ -1052,7 +1071,7 @@ EOF
             tempxall
 
             # Temporary file for check inexistent items
-            tempfile=$(mktemp -p"$TMPDIR")
+            tempfile=$(mktemp -p "$TMPDIR")
 
             # Temporary file for append sum file size
 
@@ -1119,7 +1138,7 @@ EOF
             
             # --no-collapse
             reporting=$(dialog --title "\Z0Lista de Pedido de Música" \
-              --colors --ok-label "Continuar" --stdout --no-collapse \
+              --backtitle "$BT_REPORT_MUSIC" --colors --ok-label "Continuar" --stdout --no-collapse \
               --msgbox "\n
   tems | Faltan | Tamaño Mb | Tamaño Gb\n
 -------+--------+-----------+-------------\n
@@ -1143,8 +1162,8 @@ $tempnoitem
 
 # Volcando reporte a ./reports/<Cliente>_report_music.txt
 
-            exchmenu=$(dialog --title "\Z0Creación de Reporte y Recibo" \
-              --colors --ok-label "Generar" --stdout \
+            exchmenu=$(dialog --title "\Z0Creación de Reporte de Música y Recibo" \
+              --backtitle "$BT_REPORT_MUSIC" --colors --ok-label "Generar" --stdout \
               --form "Rellene los campos para generar el recibo de pago" "$FHEIGHT" "$FWIDTH" "$FRMHEIGHT" \
               "Nombre:" 1 1 "" 1 13 22 100 \
               "Monto:" 2 1 "" 2 13 22 10 \
@@ -1201,45 +1220,51 @@ EOF
               
               fold -w 42 "${clientreports}""${nameexch}"_report_music.txt > "${clientreports}""${nameexch}"_report_music_print.txt
               vidreporting=$(cat "${clientreports}""${nameexch}"_report_music_print.txt)
-              dialog --title "\Z0REPORTE DE MÚSICA" \
-                --colors --ok-label "Continuar" --stdout --no-collapse \
+              "$DLG" --title "\Z0REPORTE DE MÚSICA" \
+                --backtitle "$BT_REPORT_MUSIC" --colors --ok-label "Continuar" --stdout --no-collapse \
                 --msgbox "$vidreporting" 0 0
-              print_report_yes_no "IMPRESIÓN DE REPORTE"
+              MSG_REPORT=$(echo "\nEl Recibo de Pago fue creado en:\n\n${clientreports}${nameexch}_report_print.txt\n\nDesea Imprimir el RECIBO?\n\nSi escoje 'NO', Puede imprimirlo manualmente con lp:\n$ lp reports/<file.txt>\n$ lp -d <printer name> reports/<file.txt>")
+              dlg_report_yesno "Impresión de Reporte de Música" "yesno" "$BT_REPORT_MUSIC"
               sexit=$?
               if [[ "$sexit" = 0 ]]; then
                 lp "${clientreports}""${nameexch}"_report_music_print.txt 
-                reports
+                return
               else
-                reports
+                MSG=$(echo "\nCancelado (Cod. $sexit)")
+                dlg_msg "Reporte de Música" "msgbox" "$BT_REPORT_MUSIC"
+                return
               fi
-              reports
+              return
             else
-              reportcancel "AVISO"
-              reports
+              MSG=$(echo "\nCancelado (Cod. $sexit)")
+              dlg_msg "Reporte de Música" "msgbox" "$BT_REPORT_MUSIC"
+              return
             fi
           fi
         else
-          reportcancel "AVISO"
-          reports
+          MSG=$(echo "\nCancelado (Cod. $sexit)")
+          dlg_msg "Reporte de Música" "msgbox" "$BT_REPORT_MUSIC"
+          return
         fi
-
         break
       ;;
       "Juegos")
         # Report juegos
         clear
-        origen=$(dialog --title "\Z0RUTA ARCHIVO" \
-          --colors --ok-label "Seleccionar" --stdout \
+        origen=$(dialog --title "\Z0Abrir archivo para Reporte de Juegos" \
+          --backtitle "$BT_REPORT_JUEGOS" --colors --ok-label "Seleccionar" --stdout \
           --fselect "$dialogorig" "$FSHEIGHT" "$FSWIDTH")
         sexit=$?
         if [[ "$sexit" = 0 ]]; then
           if [[ ! -e "$origen" || -d "$origen" ]]; then
-            need_file_order "Warning"
-            reports
+            MSG=$(echo "\n${origen}\n\nes un directorio o el archivo no existe tiene que seleccionar un archivo de texto que contenga el pedido con los IDs de los items")
+            dlg_msg "Reporte de Juegos" "msgbox" "$BT_REPORT_JUEGOS"
+            return 1
           else
             if [[ -z "$(cat "${origen}")" ]]; then
-              empty_file_order "Warning"
-              reports
+              MSG=$(echo "\nEl archivo:\n\n'${origen}'\n\nestá vacío.\n\nLLene un archivo manualmente con la lista de items de pedido o desde la opción del menú principal - 1) Abrir o Crear lista de pedidos")
+              dlg_msg "Reporte de Juegos" "msgbox" "$BT_REPORT_JUEGOS"
+              return
             fi
             
             pedido=$(cat "$origen")
@@ -1358,7 +1383,7 @@ EOF
 
             # --no-collapse
             reporting=$(dialog --title "\Z0Lista de Pedido de Juegos" \
-               --colors --ok-label "Continuar" --stdout --no-collapse \
+               --backtitle "$BT_REPORT_JUEGOS" --colors --ok-label "Continuar" --stdout --no-collapse \
                --msgbox "\n
  Items | Faltan | Tamaño Mb | Tamaño Gb\n
 -------+--------+-----------+-------------\n
@@ -1386,8 +1411,8 @@ $tempnoitem
 
 # Volcando reporte a ./reports/<Cliente>_report.txt  para impresión
 
-            exchmenu=$(dialog --title "\Z0Creación de Reporte y Recibo" \
-              --colors --ok-label "Generar" --stdout \
+            exchmenu=$(dialog --title "\Z0Creación de Reporte de Juegos y Recibo" \
+              --backtitle "$BT_REPORT_JUEGOS" --colors --ok-label "Generar" --stdout \
               --form "Rellene los campos para generar el recibo de pago" "$FHEIGHT" "$FWIDTH" "$FRMHEIGHT" \
               "Nombre:" 1 1 "" 1 13 22 100 \
               "Monto:" 2 1 "" 2 13 22 10 \
@@ -1448,45 +1473,51 @@ EOF
               
               fold -w 42 "${clientreports}""${nameexch}"_report_juegos.txt > "${clientreports}""${nameexch}"_report_juegos_print.txt
               vidreporting=$(cat "${clientreports}""${nameexch}"_report_juegos_print.txt)
-              dialog --title "\Z0REPORTE DE JUEGOS" \
-                --colors --ok-label "Continuar" --stdout --no-collapse \
+              "$DLG" --title "\Z0REPORTE DE JUEGOS" \
+                --backtitle "$BT_REPORT_JUEGOS" --colors --ok-label "Continuar" --stdout --no-collapse \
                 --msgbox "$vidreporting" 0 0
-              print_report_yes_no "IMPRESIÓN DE REPORTE"
+              MSG_REPORT=$(echo "\nEl Recibo de Pago fue creado en:\n\n${clientreports}${nameexch}_report_print.txt\n\nDesea Imprimir el RECIBO?\n\nSi escoje 'NO', Puede imprimirlo manualmente con lp:\n$ lp reports/<file.txt>\n$ lp -d <printer name> reports/<file.txt>")
+              dlg_report_yesno "Impresión de Reporte de Juegos" "yesno" "$BT_REPORT_JUEGOS"
               sexit=$?
               if [[ "$sexit" = 0 ]]; then
                 lp "${clientreports}""${nameexch}"_report_juegos_print.txt 
-                reports
+                return
               else
-                reports
+                MSG=$(echo "\nCancelado (Cod. $sexit)")
+                dlg_msg "Reporte de Juegos" "msgbox" "$BT_REPORT_JUEGOS"
+                return
               fi
-              reports
+              return
             else
-              reportcancel "AVISO"
-              reports
+              MSG=$(echo "\nCancelado (Cod. $sexit)")
+              dlg_msg "Reporte de Juegos" "msgbox" "$BT_REPORT_JUEGOS"
+              return
             fi
           fi
         else
-          reportcancel "AVISO"
-          reports
+          MSG=$(echo "\nCancelado (Cod. $sexit)")
+          dlg_msg "Reporte de Juegos" "msgbox" "$BT_REPORT_JUEGOS"
+          return
         fi
-
         break
       ;;
       "Apps")
         # Report apps
         clear
-        origen=$(dialog --title "\Z0RUTA ARCHIVO" \
-          --colors --ok-label "Seleccionar" --stdout \
+        origen=$(dialog --title "\Z0Abrir archivo para Reporte de Apps" \
+          --backtitle "$BT_REPORT_APPS" --colors --ok-label "Seleccionar" --stdout \
           --fselect "$dialogorig" "$FSHEIGHT" "$FSWIDTH")
         sexit=$?
         if [[ "$sexit" = 0 ]]; then
           if [[ ! -e "$origen" || -d "$origen" ]]; then
-            need_file_order "Warning"
-            reports
+            MSG=$(echo "\n${origen}\n\nes un directorio o el archivo no existe tiene que seleccionar un archivo de texto que contenga el pedido con los IDs de los items")
+            dlg_msg "Reporte de Apps" "msgbox" "$BT_REPORT_APPS"
+            return 1
           else
             if [[ -z "$(cat "${origen}")" ]]; then
-              empty_file_order "Warning"
-              reports
+              MSG=$(echo "\nEl archivo:\n\n'${origen}'\n\nestá vacío.\n\nLLene un archivo manualmente con la lista de items de pedido o desde la opción del menú principal - 1) Abrir o Crear lista de pedidos")
+              dlg_msg "Reporte de Apps" "msgbox" "$BT_REPORT_APPS"
+              return
             fi
             
             pedido=$(cat "$origen")
@@ -1605,7 +1636,7 @@ EOF
 
             # --no-collapse
             reporting=$(dialog --title "\Z0Lista de Pedido de Apps" \
-               --colors --ok-label "Continuar" --stdout --no-collapse \
+               --backtitle "$BT_REPORT_APPS" --colors --ok-label "Continuar" --stdout --no-collapse \
                --msgbox "\n
  Items | Faltan | Tamaño Mb | Tamaño Gb\n
 -------+--------+-----------+-------------\n
@@ -1633,8 +1664,8 @@ $tempnoitem
 
 # Volcando reporte a ./reports/<Cliente>_report.txt  para impresión
 
-            exchmenu=$(dialog --title "\Z0Creación de Reporte y Recibo" \
-              --colors --ok-label "Generar" --stdout \
+            exchmenu=$(dialog --title "\Z0Creación de Reporte de Apps y Recibo" \
+              --backtitle "$BT_REPORT_APPS" --colors --ok-label "Generar" --stdout \
               --form "Rellene los campos para generar el recibo de pago" "$FHEIGHT" "$FWIDTH" "$FRMHEIGHT" \
               "Nombre:" 1 1 "" 1 13 22 100 \
               "Monto:" 2 1 "" 2 13 22 10 \
@@ -1696,47 +1727,56 @@ EOF
               fold -w 42 "${clientreports}""${nameexch}"_report_apps.txt > "${clientreports}""${nameexch}"_report_apps_print.txt
               vidreporting=$(cat "${clientreports}""${nameexch}"_report_apps_print.txt)
               dialog --title "\Z0REPORTE DE APPS" \
-                --colors --ok-label "Continuar" --stdout --no-collapse \
+                --backtitle "$BT_REPORT_APPS" --colors --ok-label "Continuar" --stdout --no-collapse \
                 --msgbox "$vidreporting" 0 0
-              print_report_yes_no "IMPRESIÓN DE REPORTE"
+              MSG_REPORT=$(echo "\nEl Recibo de Pago fue creado en:\n\n${clientreports}${nameexch}_report_print.txt\n\nDesea Imprimir el RECIBO?\n\nSi escoje 'NO', Puede imprimirlo manualmente con lp:\n$ lp reports/<file.txt>\n$ lp -d <printer name> reports/<file.txt>")
+              dlg_report_yesno "Impresión de Reporte de Apps" "yesno" "$BT_REPORT_APPS"
               sexit=$?
               if [[ "$sexit" = 0 ]]; then
                 lp "${clientreports}""${nameexch}"_report_apps_print.txt 
-                reports
+                return
               else
-                reports
+                MSG=$(echo "\nCancelado (Cod. $sexit)")
+                dlg_msg "Reporte de Apps" "msgbox" "$BT_REPORT_APPS"
+                return
               fi
-              reports
+              return
             else
-              reportcancel "AVISO"
-              reports
+              MSG=$(echo "\nCancelado (Cod. $sexit)")
+              dlg_msg "Reporte de Apps" "msgbox" "$BT_REPORT_APPS"
+              return
             fi
           fi
         else
-          reportcancel "AVISO"
-          reports
+          MSG=$(echo "\nCancelado (Cod. $sexit)")
+          dlg_msg "Reporte de Apps" "msgbox" "$BT_REPORT_APPS"
+          return
         fi
-
         break
       ;;
       "Libros")
         # Report libros
         clear
-        origen=$(dialog --title "\Z0RUTA ARCHIVO" \
-          --colors --ok-label "Seleccionar" --stdout \
+        origen=$(dialog --title "\Z0Abrir archivo para Reporte de Libros" \
+          --backtitle "$BT_REPORT_LIBROS" --colors --ok-label "Seleccionar" --stdout \
           --fselect "$dialogorig" "$FSHEIGHT" "$FSWIDTH")
         sexit=$?
         if [[ "$sexit" = 0 ]]; then
           if [[ ! -e "$origen" || -d "$origen" ]]; then
-            need_file_order "Warning"
-            reports
+            MSG=$(echo "\n${origen}\n\nes un directorio o el archivo no existe tiene que seleccionar un archivo de texto que contenga el pedido con los IDs de los items")
+            dlg_msg "Reporte de Libros" "msgbox" "$BT_REPORT_LIBROS"
+            return 1
           else
             if [[ -z "$(cat ${origen})" ]]; then
-              empty_file_order "Warning"
-              reports
+              MSG=$(echo "\nEl archivo:\n\n'${origen}'\n\nestá vacío.\n\nLLene un archivo manualmente con la lista de items de pedido o desde la opción del menú principal - 1) Abrir o Crear lista de pedidos")
+              dlg_msg "Reporte de Libros" "msgbox" "$BT_REPORT_LIBROS"
+              return
             fi
             
             pedido=$(cat "$origen")
+
+            # Counter
+
             qty=0
             qtyl=0
 
@@ -1814,7 +1854,7 @@ EOF
 
             # --no-collapse
             reporting=$(dialog --title "\Z0Lista de Pedido de Libros" \
-               --colors --ok-label "Continuar" --stdout --no-collapse \
+               --backtitle "$BT_REPORT_LIBROS" --colors --ok-label "Continuar" --stdout --no-collapse \
                --msgbox "\n
  Items | Faltan | Tamaño Mb | Tamaño Gb\n
 -------+--------+-----------+-------------\n
@@ -1838,8 +1878,8 @@ $tempnoitem
 
 # Volcando reporte a ./reports/<Cliente>_report.txt  para impresión
 
-            exchmenu=$(dialog --title "\Z0Creación de Reporte y Recibo" \
-              --colors --ok-label "Generar" --stdout \
+            exchmenu=$(dialog --title "\Z0Creación de Reporte de Libros y Recibo" \
+              --backtitle "$BT_REPORT_LIBROS" --colors --ok-label "Generar" --stdout \
               --form "Rellene los campos para generar el recibo de pago" "$FHEIGHT" "$FWIDTH" "$FRMHEIGHT" \
               "Nombre:" 1 1 "" 1 13 22 100 \
               "Monto:" 2 1 "" 2 13 22 10 \
@@ -1897,47 +1937,56 @@ EOF
               fold -w 42 "${clientreports}""${nameexch}"_report_libros.txt > "${clientreports}""${nameexch}"_report_libros_print.txt
               vidreporting=$(cat "${clientreports}""${nameexch}"_report_libros_print.txt)
               dialog --title "\Z0REPORTE DE LIBROS" \
-                --colors --ok-label "Continuar" --stdout --no-collapse \
+                --backtitle "$BT_REPORT_LIBROS" --colors --ok-label "Continuar" --stdout --no-collapse \
                 --msgbox "$vidreporting" 0 0
-              print_report_yes_no "IMPRESIÓN DE REPORTE"
+              MSG_REPORT=$(echo "\nEl Recibo de Pago fue creado en:\n\n${clientreports}${nameexch}_report_print.txt\n\nDesea Imprimir el RECIBO?\n\nSi escoje 'NO', Puede imprimirlo manualmente con lp:\n$ lp reports/<file.txt>\n$ lp -d <printer name> reports/<file.txt>")
+              dlg_report_yesno "Impresión de Reporte de Libros" "yesno" "$BT_REPORT_LIBROS"
               sexit=$?
               if [[ "$sexit" = 0 ]]; then
                 lp "${clientreports}""${nameexch}"_report_libros_print.txt 
-                reports
+                return
               else
-                reports
+                MSG=$(echo "\nCancelado (Cod. $sexit)")
+                dlg_msg "Reporte de Libros" "msgbox" "$BT_REPORT_LIBROS"
+                return
               fi
-              reports
+              return
             else
-              reportcancel "AVISO"
-              reports
+              MSG=$(echo "\nCancelado (Cod. $sexit)")
+              dlg_msg "Reporte de Libros" "msgbox" "$BT_REPORT_LIBROS"
+              return
             fi
           fi
         else
-          reportcancel "AVISO"
-          reports
+          MSG=$(echo "\nCancelado (Cod. $sexit)")
+          dlg_msg "Reporte de Libros" "msgbox" "$BT_REPORT_LIBROS"
+          return
         fi
-
         break
       ;;
       "Comics")
         # Report comics
         clear
-        origen=$(dialog --title "\Z0RUTA ARCHIVO" \
-          --colors --ok-label "Seleccionar" --stdout \
+        origen=$(dialog --title "\ZOAbrir archivo para Reporte de Comics" \
+          --backtitle "$BT_REPORT_COMICS" --colors --ok-label "Seleccionar" --stdout \
           --fselect "$dialogorig" "$FSHEIGHT" "$FSWIDTH")
         sexit=$?
         if [[ "$sexit" = 0 ]]; then
           if [[ ! -e "$origen" || -d "$origen" ]]; then
-            need_file_order "Warning"
-            reports
+            MSG=$(echo "\n${origen}\n\nes un directorio o el archivo no existe tiene que seleccionar un archivo de texto que contenga el pedido con los IDs de los items")
+            dlg_msg "Reporte de Comics" "msgbox" "$BT_REPORT_COMICS"
+            return 1
           else
             if [[ -z "$(cat ${origen})" ]]; then
-              empty_file_order "Warning"
-              reports
+              MSG=$(echo "\nEl archivo:\n\n'${origen}'\n\nestá vacío.\n\nLLene un archivo manualmente con la lista de items de pedido o desde la opción del menú principal - 1) Abrir o Crear lista de pedidos")
+              dlg_msg "Reporte de Comics" "msgbox" "$BT_REPORT_COMICS"
+              return
             fi
             
             pedido=$(cat "$origen")
+
+            # Counter
+
             qty=0
             qtyc=0
 
@@ -2015,7 +2064,7 @@ EOF
 
             # --no-collapse
             reporting=$(dialog --title "\Z0Lista de Pedido de Comics" \
-               --colors --ok-label "Continuar" --stdout --no-collapse \
+               --backtitle "$BT_REPORT_COMICS" --colors --ok-label "Continuar" --stdout --no-collapse \
                --msgbox "\n
  Items | Faltan | Tamaño Mb | Tamaño Gb\n
 -------+--------+-----------+-------------\n
@@ -2039,8 +2088,8 @@ $tempnoitem
 
 # Volcando reporte a ./reports/<Cliente>_report.txt  para impresión
 
-            exchmenu=$(dialog --title "\Z0Creación de Reporte y Recibo" \
-              --colors --ok-label "Generar" --stdout \
+            exchmenu=$(dialog --title "\Z0Creación de Reporte de Comics y Recibo" \
+              --backtitle "$BT_REPORT_COMICS" --colors --ok-label "Generar" --stdout \
               --form "Rellene los campos para generar el recibo de pago" "$FHEIGHT" "$FWIDTH" "$FRMHEIGHT" \
               "Nombre:" 1 1 "" 1 13 22 100 \
               "Monto:" 2 1 "" 2 13 22 10 \
@@ -2097,39 +2146,44 @@ EOF
               
               fold -w 42 "${clientreports}""${nameexch}"_report_comics.txt > "${clientreports}""${nameexch}"_report_comics_print.txt
               vidreporting=$(cat "${clientreports}""${nameexch}"_report_comics_print.txt)
-              dialog --ok-label "Continuar" --title "\Z0REPORTE DE COMICS" \
-                --colors --stdout --no-collapse \
+              "$DLG" --title "\Z0REPORTE DE COMICS" \
+                --backtitle "$BT_REPORT_COMICS" --colors --ok-label "Continuar" --stdout --no-collapse \
                 --msgbox "$vidreporting" 0 0
-              print_report_yes_no "IMPRESIÓN DE REPORTE"
+              MSG_REPORT=$(echo "\nEl Recibo de Pago fue creado en:\n\n${clientreports}${nameexch}_report_print.txt\n\nDesea Imprimir el RECIBO?\n\nSi escoje 'NO', Puede imprimirlo manualmente con lp:\n$ lp reports/<file.txt>\n$ lp -d <printer name> reports/<file.txt>")
+              dlg_report_yesno "Impresión de Reporte de Comics" "yesno" "$BT_REPORT_COMICS"
               sexit=$?
               if [[ "$sexit" = 0 ]]; then
                 lp "${clientreports}""${nameexch}"_report_comics_print.txt 
-                reports
+                return
               else
-                reports
+                MSG=$(echo "\nCancelado (Cod. $sexit)")
+                dlg_msg "Reporte de Comics" "msgbox" "$BT_REPORT_COMICS"
+                return
               fi
-              reports
+              return
             else
-              reportcancel "AVISO"
-              reports
+              MSG=$(echo "\nCancelado (Cod. $sexit)")
+              dlg_msg "Reporte de Comics" "msgbox" "$BT_REPORT_COMICS"
+              return
             fi
           fi
         else
-          reportcancel "AVISO"
-          reports
+          MSG=$(echo "\nCancelado (Cod. $sexit)")
+          dlg_msg "Reporte de Comics" "msgbox" "$BT_REPORT_COMICS"
+          return
         fi
         break
       ;;
       "Ver Log de Archivos Copiados")
         clear
 	      if [[ -f "$copiadoslog" ]]; then
-	        dialog --title "\Z0Log Copiados" \
-            --colors --clear --ok-label "Cerrar" --stdout \
+	        "$DLG" --title "\Z0Log Copiados" \
+            --backtitle "REPORTE" --colors --clear --ok-label "Cerrar" --stdout \
             --textbox "$copiadoslog" 0 0
           reports
         else
-          dialog --title "\Z0Warning" \
-            --colors --ok-label "Cerrar" --stdout \
+          "$DLG" --title "\Z0Warning" \
+            --backtitle "REPORTE" --colors --ok-label "Cerrar" --stdout \
             --msgbox "Archivo de log (copiados.log) de copias no encontrado.\n\nRevise la configuración mdialog_conf" 0 0
           reports
         fi
@@ -2138,13 +2192,13 @@ EOF
       "Ver Log de Archivos de Copias Fallidas")
         clear
 	      if [[ -f "$fallidoslog" ]]; then
-	        dialog --title "\Z0Log Fallidos" \
-            --colors --clear --ok-label "Cerrar" --stdout \
+	        "$DLG" --title "\Z0Log Fallidos" \
+            --backtitle "REPORTE" --colors --clear --ok-label "Cerrar" --stdout \
             --textbox "$fallidoslog" 0 0
           reports
         else
-          dialog --title "\Z0Warning" \
-            --colors --ok-label "Cerrar" --stdout \
+          "$DLG" --title "\Z0Warning" \
+            --backtitle "REPORTE" --colors --ok-label "Cerrar" --stdout \
             msgbox "Archivo de log (fallidos.log) de copias no encontrado.\n\nRevise la configuración mdialog_conf" 00
           reports
         fi
@@ -2166,83 +2220,85 @@ EOF
 #################
 
 copyprogress () {
-  echo -e ""
-  echo -e "$SCRIPTNAME - $VERSION\n"
-  echo -e "======================================="
-  echo -e "        COPIA EN PROGRESO ....         "
-  echo -e "======================================="
-  echo -e ""
+  printf "\n"
+  printf "%s - %s - %s\n" "$1" "$SCRIPTNAME" "$VERSION"
+  printf "%s\n" "==============================================="
+  printf "%s\n" "              COPIA EN PROGRESO ....           "
+  printf "%s\n" "==============================================="
+  printf "\n"
 }
 
 movies () {
-# Copy videos by id
-clear
-counterc=0
-counterf=0
-regdate=$(date)
-cliente=$(dialog --title "\Z0DATOS CLIENTE" \
-  --backtitle "$BACKTITLEVIDEO" --colors --ok-label "Guardar" --stdout \
-  --inputbox "Nombre y Apellido (Prefijo):" 0 0)
-sexit=$?
-if [[ "$sexit" = 0 ]]; then
-  customerdatareg
-  destino=$(dialog --title "\Z0SELECCIONAR CARPETA DESTINO" \
-    --backtitle "$BACKTITLEVIDEO" --colors --ok-label "Seleccionar" --stdout \
-    --fselect "$dialogdest" "$FSHEIGHT" "$FSWIDTH")
+  # Copy videos by id
+  clear
+  counterc=0
+  counterf=0
+  regdate=$(date)
+  cliente=$(dialog --title "\Z0Videos - Datos de Cliente" \
+    --backtitle "$BT_VIDEO" --colors --ok-label "Guardar" --stdout \
+    --inputbox "Nombre y Apellido (Prefijo):" 0 0)
   sexit=$?
   if [[ "$sexit" = 0 ]]; then
-    # Checking if target directory exist
-    if ! [[ -e "$destino" ]]; then
-      msgnotexist "$destino"
-      main
-    fi
-    origen=$(dialog --title "\Z0RUTA LISTA (ej. fcid.txt)" \
-      --backtitle "$BACKTITLEVIDEO" --colors --ok-label "Seleccionar" --stdout \
-      --fselect "$dialogorig" "$FSHEIGHT" "$FSWIDTH")
+    customerdatareg
+    destino=$(dialog --title "\Z0Videos - Abrir Carpeta de Destino" \
+      --backtitle "$BT_VIDEO" --colors --ok-label "Seleccionar" --stdout \
+      --fselect "$dialogdest" "$FSHEIGHT" "$FSWIDTH")
     sexit=$?
     if [[ "$sexit" = 0 ]]; then
-      if ! [[ -e "$origen" ]]; then
-        msgnotexist "$origen"
+      # Checking if target directory exist
+      if ! [[ -e "$destino" ]]; then
+        MSG=$(echo "${destino} no existe")
+        dlg_msg "Videos - Abrir Carpeta de Destino" "msgbox" "$BT_VIDEO"
         main
       fi
-      sed -i '/^[[:space:]]*$/d' "$origen"
-      lowtoupcase=$(sed -i "s/f/F/g" "$origen")
-      while read -r line
-      do
-        lct=$(cat "$fallrepos" | grep -iwm 1 "$line") 
-
-        # Imprime con -i ignorando mayúsucalas, -w imprime la línea que coincide
-        # con la palabra entera, -m 1 detiene la impresión después de la primer coincidencia
-        # y no replique repetidos en fallrepos
-
-        lct2=$(grep -Piowm 1 "$line" "$fallrepos")
-
-        # Extráe solo la palabra lct(F####) con -o usando regex de Pearl
-        # con -P, -m 1 detiene la impresión después de la primer coincidencia y no replique
-        # los repetidos en el archivo fallrepos
-
-        if [ "$lct2" = "$line" ]; then
-          fuente=$(grep -Piwm 1 "$line" "$fallrepos")
-
-          # Imprimiendo la línea completa de fallrepos que contiene $line
-
-          clear
-          copyprogress
-          "$RSYNC" -ah --info=progress2 --log-file="$rsynclog" "$fuente" "$destino"
-          copiados=$(echo -e "  * $line" >> "$copiadoslog")
-          let counterc=counterc+1
-        else
-          fallidos=$(echo -e "  * $line" >> "$fallidoslog")
-          let counterf=counterf+1
+      origen=$(dialog --title "\Z0Videos - Abrir Lista Serializada (ej. fcid.txt)" \
+        --backtitle "$BT_VIDEO" --colors --ok-label "Seleccionar" --stdout \
+        --fselect "$dialogorig" "$FSHEIGHT" "$FSWIDTH")
+      sexit=$?
+      if [[ "$sexit" = 0 ]]; then
+        if ! [[ -e "$origen" ]]; then
+          MSG=$(echo "${origen} no existe")
+          dlg_msg "Videos - Abrir Lista Serializada" "msg" "$BT_VIDEO"
+          main
         fi
-      done < "$origen"
-      let totalpedido=counterc+counterf
-      cp "$logo" "$destino"
-      cp "$urlbf" "$destino"
-      pedido=$(cat "$origen")
-      dialog --title "\Z0COPIA FINALIZADA" \
-        --backtitle "$BACKTITLEVIDEO" --colors --ok-label "Continuar" --stdout \
-        --msgbox "\n
+        sed -i '/^[[:space:]]*$/d' "$origen"
+        lowtoupcase=$(sed -i "s/f/F/g" "$origen")
+        while read -r line
+        do
+          #lct=$(cat "$fallrepos" | grep -iwm 1 "$line") 
+  
+          # Imprime con -i ignorando mayúsucalas, -w imprime la línea que coincide
+          # con la palabra entera, -m 1 detiene la impresión después de la primer coincidencia
+          # y no replique repetidos en fallrepos
+  
+          lct2=$(grep -Piowm 1 "$line" "$fallrepos")
+  
+          # Extráe solo la palabra lct(F####) con -o usando regex de Pearl
+          # con -P, -m 1 detiene la impresión después de la primer coincidencia y no replique
+          # los repetidos en el archivo fallrepos
+  
+          if [ "$lct2" = "$line" ]; then
+            fuente=$(grep -Piwm 1 "$line" "$fallrepos")
+  
+            # Imprimiendo la línea completa de fallrepos que contiene $line
+  
+            clear
+            copyprogress "$BT_VIDEO"
+            "$RSYNC" -ah --info=progress2 --log-file="$rsynclog" "$fuente" "$destino"
+            copiados=$(echo -e "  * $line" >> "$copiadoslog")
+            let counterc=counterc+1
+          else
+            fallidos=$(echo -e "  * $line" >> "$fallidoslog")
+            let counterf=counterf+1
+          fi
+        done < "$origen"
+        let totalpedido=counterc+counterf
+        cp "$logo" "$destino"
+        cp "$urlbf" "$destino"
+        pedido=$(cat "$origen")
+        "$DLG" --title "\Z0CVideos - Copia Finalizada" \
+          --backtitle "$BT_VIDEO" --colors --ok-label "Continuar" --stdout \
+          --msgbox "\n
   ------------ Rutas ------------\n
       Lista ID's  : $origen\n
           Destino : $destino\n
@@ -2256,72 +2312,166 @@ if [[ "$sexit" = 0 ]]; then
      ----------------+-----\n
     Items Pedidos:\n
       $pedido\n\n" 0 0
-      clear
-      pcopiadoslog=$(cat -n "$copiadoslog")
-      dialog --title "\Z0Informe" \
-        --backtitle "$BACKTITLEVIDEO" --colors --ok-label "Cerrar" --stdout \
-        --msgbox "$pcopiadoslog" 0 0
-      return 
+        clear
+        pcopiadoslog=$(cat -n "$copiadoslog")
+        MSG=$(echo "${pcopiadoslog}")
+        dlg_msg "Videos - Log de Archivos Copiados" "msgbox" "$BT_VIDEO"
+        return 
+      else
+        MSG=$(echo "\nCancelado (Cod. $sexit)")
+        dlg_msg "Videos - Copia de Videos" "msgbox" "$BT_VIDEO"
+        return
+      fi
     else
-      dialog --title "\Z0Warning" \
-        --backtitle "$BACKTITLEVIDEO" --colors --ok-label "Cerrar" --stdout \
-        --msgbox "Cancelado" 0 0
+      MSG=$(echo "\nCancelado (Cod. $sexit)")
+      dlg_msg "Videos - Copia de Videos" "msgbox" "$BT_VIDEO"
+      return
     fi
   else
-    dialog --title "\Z0Warning" \
-      --backtitle "$BACKTITLEVIDEO" --colors --ok-label "Cerrar" --stdout \
-      --msgbox "Cancelado" 0 0
+    MSG=$(echo "\nCancelado (Cod. $sexit)")
+    dlg_msg "Videos - Copia de Videos" "msgbox" "$BT_VIDEO"
+    return
   fi
-
-else
-  dialog --title "\Z0Warning" \
-    --backtitle "$BACKTITLEVIDEO" --colors --ok-label "Cerrar" --stdout \
-    --msgbox "Cancelado" 0 0
-fi
 main
 }
 
 music () {
-# Copy music by id
-clear
-counterc=0
-counterf=0
-regdate=$(date)
-cliente=$(dialog --title "\Z0DATOS CLIENTE" \
-  --backtitle "$BACKTITLEMUSIC" --colors --ok-label "Guardar" --stdout \
-  --inputbox "Nombre y Apellido (Prefijo):" 0 0)
-sexit=$?
-if [[ "$sexit" = 0 ]]; then
-  customerdatareg
-  destino=$(dialog --title "\Z0SELECCIONAR CARPETA DESTINO" \
-    --backtitle "$BACKTITLEMUSIC" --colors --ok-label "Seleccionar" --stdout \
-    --fselect "$dialogdest" "$FSHEIGHT" "$FSWIDTH")
+  # Copy music by id
+  clear
+  counterc=0
+  counterf=0
+  regdate=$(date)
+  cliente=$(dialog --title "\Z0DMúsica - Datos de Cliente" \
+    --backtitle "$BT_MUSIC" --colors --ok-label "Guardar" --stdout \
+    --inputbox "Nombre y Apellido (Prefijo):" 0 0)
   sexit=$?
   if [[ "$sexit" = 0 ]]; then
+    customerdatareg
+    destino=$(dialog --title "\Z0Música - Abrir Carpeta de Destino" \
+      --backtitle "$BT_MUSIC" --colors --ok-label "Seleccionar" --stdout \
+      --fselect "$dialogdest" "$FSHEIGHT" "$FSWIDTH")
+    sexit=$?
+    if [[ "$sexit" = 0 ]]; then
+      # Checking if target directory exist
+      if ! [[ -e "$destino" ]]; then
+        MSG=$(echo "${destino} no existe")
+        dlg_msg "Música - Abrir Carpeta de Destino" "msgbox" "$BT_MUSIC"
+        main
+      fi
+      origen=$(dialog --title "\Z0Música - Abrir Lista Serializada (ej. mcid.txt)" \
+        --backtitle "$BT_MUSIC" --colors --ok-label "Seleccionar" --stdout \
+        --fselect "$dialogorig" "$FSHEIGHT" "$FSWIDTH")
+      sexit=$?
+        if [[ "$sexit" = 0 ]]; then
+          if ! [[ -e "$origen" ]]; then
+            MSG=$(echo "${origen} no existe")
+            dlg_msg "Música - Abrir Lista Serializada" "msg" "$BT_MUSIC"
+            main
+          fi
+          sed -i '/^[[:space:]]*$/d' "$origen"
+          lowtoupcase=$(sed -i "s/m/M/g" "$origen")
+          while read -r line
+          do
+            lct=$(cat "$mallrepos" | grep -iwm 1 "$line")
+            lct2=$(grep -Piowm 1 "$line" "$mallrepos")
+            if [ "$lct2" = "$line" ]; then
+              fuente=$(grep -Piwm 1 "$line" "$mallrepos")
+              clear
+              copyprogress "$BT_MUSIC"
+              "$RSYNC" -ah --info=progress2 --log-file="$rsynclog" "$fuente" "$destino"
+              copiados=$(echo -e "  * $line" >> "$copiadoslog")
+              let counterc=counterc+1
+            else
+              fallidos=$(echo -e "  * $line" >> "$fallidoslog")
+              let counterf=counterf+1
+            fi
+          done < "$origen"
+          let totalpedido=counterc+counterf
+          cp "$logo" "$destino"
+          cp "$urlbm" "$destino"
+          pedido=$(cat "$origen")
+          "$DLG" --title "\Z0Música - Copia Finalizada" \
+            --backtitle "$BT_MUSIC" --colors --ok-label "Continuar" --stdout \
+            --msgbox "\n
+  ------------ Rutas ------------\n
+      Lista ID's  : $origen\n
+          Destino : $destino\n
+  ------------ Items ------------\n
+     ----------------+-----\n
+      Total Pedidos  |  $totalpedido   \n
+     ----------------+-----\n
+      Total Copiados |  $counterc   \n
+     ----------------+-----\n
+      total Fallidos |  $counterf   \n
+     ----------------+-----\n
+      Items Pedidos:\n
+      $pedido\n\n" 0 0
+          clear
+          pcopiadoslog=$(cat -n "$copiadoslog")
+          MSG=$(echo "${pcopiadoslog}")
+          dlg_msg "Música - Log de Archivos Copiados" "msgbox" "$BT_MUSIC"
+          return
+        else
+          MSG=$(echo "\nCancelado (Cod. $sexit)")
+          dlg_msg "Música - Copia de Música" "msgbox" "$BT_MUSIC"
+          return
+        fi
+    else
+      MSG=$(echo "\nCancelado (Cod. $sexit)")
+      dlg_msg "Música - Copia de Música" "msgbox" "$BT_MUSIC"
+      return
+    fi
+  else
+    MSG=$(echo "\nCancelado (Cod. $sexit)")
+    dlg_msg "Música - Copia de Música" "msgbox" "$BT_MUSIC"
+    return
+  fi
+  main
+}
+
+games () {
+  # Copy games by id
+  clear
+  counterc=0
+  counterf=0
+  regdate=$(date)
+  cliente=$(dialog --title "\Z0Juegos - Datos de Cliente" \
+    --backtitle "$BT_JUEGOS" --colors --ok-label "Guardar" --stdout \
+    --inputbox "Nombre y Apellido (Prefijo):" 0 0)
+  sexit=$?
+  if [[ "$sexit" = 0 ]]; then
+    customerdatareg
+    destino=$(dialog --title "\Z0Juegos - Abrir Carpeta de Destino" \
+      --backtitle "$BT_JUEGOS" --colors --ok-label "Seleccionar" --stdout \
+      --fselect "$dialogdest" "$FSHEIGHT" "$FSWIDTH")
+    sexit=$?
+    if [[ "$sexit" = 0 ]]; then
     # Checking if target directory exist
     if ! [[ -e "$destino" ]]; then
-      msgnotexist "$destino"
+      MSG=$(echo "${destino} no existe")
+      dlg_msg "Juegos - Abrir Carpeta de Destino" "msgbox" "$BT_JUEGOS"
       main
     fi
-    origen=$(dialog --title "\Z0RUTA LISTA (ej. mcid.txt)" \
-      --backtitle "$BACKTITLEMUSIC" --colors --ok-label "Seleccionar" --stdout \
+    origen=$(dialog --title "\Z0Juegos - Abrir Lista Serializada (ej. jcid.txt)" \
+      --backtitle "$BT_JUEGOS" --colors --ok-label "Seleccionar" --stdout \
       --fselect "$dialogorig" "$FSHEIGHT" "$FSWIDTH")
     sexit=$?
       if [[ "$sexit" = 0 ]]; then
         if ! [[ -e "$origen" ]]; then
-          msgnotexist "$origen"
+          MSG=$(echo "${origen} no existe")
+          dlg_msg "Juegos - Abrir Lista Serializada" "msg" "$BT_JUEGOS"
           main
         fi
         sed -i '/^[[:space:]]*$/d' "$origen"
-        lowtoupcase=$(sed -i "s/m/M/g" "$origen")
+        lowtoupcase=$(sed -i "s/j/J/g" "$origen")
         while read -r line
         do
-          lct=$(cat "$mallrepos" | grep -iwm 1 "$line")
-          lct2=$(grep -Piowm 1 "$line" "$mallrepos")
+          lct=$(cat "$jallrepos" | grep -iwm 1 "$line")
+          lct2=$(grep -Piowm 1 "$line" "$jallrepos")
           if [ "$lct2" = "$line" ]; then
-            fuente=$(grep -Piwm 1 "$line" "$mallrepos")
+            fuente=$(grep -Piwm 1 "$line" "$jallrepos")
             clear
-            copyprogress
+            copyprogress "$BT_JUEGOS"
             "$RSYNC" -ah --info=progress2 --log-file="$rsynclog" "$fuente" "$destino"
             copiados=$(echo -e "  * $line" >> "$copiadoslog")
             let counterc=counterc+1
@@ -2334,8 +2484,8 @@ if [[ "$sexit" = 0 ]]; then
         cp "$logo" "$destino"
         cp "$urlbm" "$destino"
         pedido=$(cat "$origen")
-        dialog --title "\Z0COPIA FINALIZADA" \
-          --backtitle "$BACKTITLEMUSIC" --colors --ok-label "Continuar" --stdout \
+        "$DLG" --title "\Z0Juegos - Copia Finalizada" \
+          --backtitle "$BT_JUEGOS" --colors --ok-label "Continuar" --stdout \
           --msgbox "\n
   ------------ Rutas ------------\n
       Lista ID's  : $origen\n
@@ -2352,177 +2502,85 @@ if [[ "$sexit" = 0 ]]; then
       $pedido\n\n" 0 0
         clear
         pcopiadoslog=$(cat -n "$copiadoslog")
-        dialog --ok-label "Cerrar" --title "\Z0Informe" \
-          --backtitle "$BACKTITLEMUSIC" --colors --stdout \
-          --msgbox "$pcopiadoslog" 0 0
+        MSG=$(echo "${pcopiadoslog}")
+        dlg_msg "Juegos - Log de Archivos Copiados" "msgbox" "$BT_JUEGOS"
         return
       else
-        dialog --title "\Z0Warning" \
-          --colors --ok-label "Cerrar" --stdout \
-          --msgbox "Cancelado" 0 0
+        MSG=$(echo "\nCancelado (Cod. $sexit)")
+        dlg_msg "Juegos - Copia de Música" "msgbox" "$BT_JUEGOS"
+        return
       fi
-  else
-    dialog --title "\Z0Warning" \
-      --backtitle "$BACKTITLEMUSIC" --colors --ok-label "Cerrar" --stdout \
-      --msgbox "Cancelado" 0 0
-  fi
-else
-  dialog --title "\Z0Warning" \
-    --backtitle "$BACKTITLEMUSIC" --colors --ok-label "Cerrar" --stdout \
-    --msgbox "Cancelado" 0 0
-fi
-main
-}
-
-games () {
-# Copy games by id
-clear
-counterc=0
-counterf=0
-regdate=$(date)
-cliente=$(dialog --title "\Z0DATOS CLIENTE" \
-  --backtitle "$BACKTITLEJUEGOS" --colors --ok-label "Guardar" --stdout \
-  --inputbox "Nombre y Apellido (Prefijo):" 0 0)
-sexit=$?
-if [[ "$sexit" = 0 ]]; then
-  customerdatareg
-  destino=$(dialog --title "\Z0SELECCIONAR CARPETA DESTINO" \
-    --backtitle "$BACKTITLEJUEGOS" --colors --ok-label "Seleccionar" --stdout \
-    --fselect "$dialogdest" "$FSHEIGHT" "$FSWIDTH")
-  sexit=$?
-  if [[ "$sexit" = 0 ]]; then
-  # Checking if target directory exist
-  if ! [[ -e "$destino" ]]; then
-    msgnotexist "$destino"
-    main
-  fi
-  origen=$(dialog --title "\Z0Ruta Lista (ej. jcid.txt)" \
-    --backtitle "$BACKTITLEJUEGOS" --colors --ok-label "Seleccionar" --stdout \
-    --fselect "$dialogorig" "$FSHEIGHT" "$FSWIDTH")
-  sexit=$?
-    if [[ "$sexit" = 0 ]]; then
-      if ! [[ -e "$origen" ]]; then
-        msgnotexist "$origen"
-        main
-      fi
-      sed -i '/^[[:space:]]*$/d' "$origen"
-      lowtoupcase=$(sed -i "s/j/J/g" "$origen")
-      while read -r line
-      do
-        lct=$(cat "$jallrepos" | grep -iwm 1 "$line")
-        lct2=$(grep -Piowm 1 "$line" "$jallrepos")
-        if [ "$lct2" = "$line" ]; then
-          fuente=$(grep -Piwm 1 "$line" "$jallrepos")
-          clear
-          copyprogress
-          "$RSYNC" -ah --info=progress2 --log-file="$rsynclog" "$fuente" "$destino"
-          copiados=$(echo -e "  * $line" >> "$copiadoslog")
-          let counterc=counterc+1
-        else
-          fallidos=$(echo -e "  * $line" >> "$fallidoslog")
-          let counterf=counterf+1
-        fi
-      done < "$origen"
-      let totalpedido=counterc+counterf
-      cp "$logo" "$destino"
-      cp "$urlbm" "$destino"
-      pedido=$(cat "$origen")
-      dialog --title "\Z0COPIA FINALIZADA" \
-        --backtitle "$BACKTITLEJUEGOS" --colors --ok-label "Continuar" --stdout \
-        --msgbox "\n
-  ------------ Rutas ------------\n
-      Lista ID's  : $origen\n
-          Destino : $destino\n
-  ------------ Items ------------\n
-     ----------------+-----\n
-      Total Pedidos  |  $totalpedido   \n
-     ----------------+-----\n
-      Total Copiados |  $counterc   \n
-     ----------------+-----\n
-      total Fallidos |  $counterf   \n
-     ----------------+-----\n
-      Items Pedidos:\n
-      $pedido\n\n" 0 0
-      clear
-      pcopiadoslog=$(cat -n "$copiadoslog")
-      dialog --title "\Z0Informe" \
-        --backtitle "$BACKTITLEJUEGOS" --colors --ok-label "Cerrar" --stdout \
-        --msgbox "$pcopiadoslog" 0 0
-      return
     else
-      dialog --title "\Z0Warning" \
-        --backtitle "$BACKTITLEJUEGOS" --colors --ok-label "Cerrar" --stdout \
-        --msgbox "Cancelado" 0 0
+      MSG=$(echo "\nCancelado (Cod. $sexit)")
+      dlg_msg "Juegos - Copia de Música" "msgbox" "$BT_JUEGOS"
+      return
     fi
   else
-    dialog --title "\Z0Warning" \
-      --backtitle "$BACKTITLEJUEGOS" --colors --ok-label "Cerrar" --stdout \
-      --msgbox "Cancelado" 0 0
+    MSG=$(echo "\nCancelado (Cod. $sexit)")
+    dlg_msg "Juegos - Copia de Música" "msgbox" "$BT_JUEGOS"
+    return
   fi
-else
-  dialog --title "\Z0Warning" \
-    --backtitle "$BACKTITLEJUEGOS" --colors --ok-label "Cerrar" --stdout \
-    --msgbox "Cancelado" 0 0
-fi
-main
+  main
 }
 
 apps () {
-# Copy apps by id
-clear
-counterc=0
-counterf=0
-regdate=$(date)
-cliente=$(dialog --title "\Z0DATOS CLIENTE" \
-  --backtitle "$BACKTITLEAPPS" --colors --ok-label "Guardar" --stdout \
-  --inputbox "Nombre y Apellido (Prefijo):" 0 0)
-sexit=$?
-if [[ "$sexit" = 0 ]]; then
-  customerdatareg
-  destino=$(dialog --title "\Z0SELECCIONAR CARPETA DESTINO" \
-    --backtitle "$BACKTITLEAPPS" --colors --ok-label "Seleccionar" --stdout \
-    --fselect "$dialogdest" "$FSHEIGHT" "$FSWIDTH")
+  # Copy apps by id
+  clear
+  counterc=0
+  counterf=0
+  regdate=$(date)
+  cliente=$(dialog --title "\Z0Apps - Datos de Cliente" \
+    --backtitle "$BT_APPS" --colors --ok-label "Guardar" --stdout \
+    --inputbox "Nombre y Apellido (Prefijo):" 0 0)
   sexit=$?
   if [[ "$sexit" = 0 ]]; then
-  # Checking if target directory exist
-  if ! [[ -e "$destino" ]]; then
-    msgnotexist "$destino"
-    main
-  fi
-  origen=$(dialog --title "\Z0RUTA LISTA (ej. mcid.txt)" \
-    --backtitle "$BACKTITLEAPPS" --colors --ok-label "Seleccionar" --stdout \
-    --fselect "$dialogorig" "$FSHEIGHT" "$FSWIDTH")
-  sexit=$?
+    customerdatareg
+    destino=$(dialog --title "\Z0Apps - Abrir Carpeta de Destino" \
+      --backtitle "$BT_APPS" --colors --ok-label "Seleccionar" --stdout \
+      --fselect "$dialogdest" "$FSHEIGHT" "$FSWIDTH")
+    sexit=$?
     if [[ "$sexit" = 0 ]]; then
-      if ! [[ -e "$origen" ]]; then
-        msgnotexist "$origen"
-        main
-      fi
-      sed -i '/^[[:space:]]*$/d' "$origen"
-      lowtoupcase=$(sed -i "s/a/A/g" "$origen")
-      while read -r line
-      do
-        lct=$(cat "$allrepos" | grep -iwm 1 "$line")
-        lct2=$(grep -Piowm 1 "$line" "$aallrepos")
-        if [ "$lct2" = "$line" ]; then
-          fuente=$(grep -Piwm 1 "$line" "$aallrepos")
-          clear
-          copyprogress
-          "$RSYNC" -ah --info=progress2 --log-file="$rsynclog" "$fuente" "$destino"
-          copiados=$(echo -e "  * $line" >> "$copiadoslog")
-          let counterc=counterc+1
-        else
-          fallidos=$(echo -e "  * $line" >> "$fallidoslog")
-          let counterf=counterf+1
+    # Checking if target directory exist
+    if ! [[ -e "$destino" ]]; then
+      MSG=$(echo "${destino} no existe")
+      dlg_msg "Apps - Abrir Carpeta de Destino" "msgbox" "$BT_APPS"
+      main
+    fi
+    origen=$(dialog --title "\Z0Apps - Abrir Lista Serializada (ej. mcid.txt)" \
+      --backtitle "$BT_APPS" --colors --ok-label "Seleccionar" --stdout \
+      --fselect "$dialogorig" "$FSHEIGHT" "$FSWIDTH")
+    sexit=$?
+      if [[ "$sexit" = 0 ]]; then
+        if ! [[ -e "$origen" ]]; then
+          MSG=$(echo "${origen} no existe")
+          dlg_msg "Apps - Abrir Lista Serializada" "msg" "$BT_APPS"
+          main
         fi
-      done < "$origen"
-      let totalpedido=counterc+counterf
-      cp "$logo" "$destino"
-      cp "$urlbm" "$destino"
-      pedido=$(cat "$origen")
-      dialog --title "\Z0COPIA FINALIZADA" \
-        --backtitle "$BACKTITLEAPPS" --colors --ok-label "Continuar" --stdout \
-        --msgbox "\n
+        sed -i '/^[[:space:]]*$/d' "$origen"
+        lowtoupcase=$(sed -i "s/a/A/g" "$origen")
+        while read -r line
+        do
+          lct=$(cat "$allrepos" | grep -iwm 1 "$line")
+          lct2=$(grep -Piowm 1 "$line" "$aallrepos")
+          if [ "$lct2" = "$line" ]; then
+            fuente=$(grep -Piwm 1 "$line" "$aallrepos")
+            clear
+            copyprogress "$BT_APPS"
+            "$RSYNC" -ah --info=progress2 --log-file="$rsynclog" "$fuente" "$destino"
+            copiados=$(echo -e "  * $line" >> "$copiadoslog")
+            let counterc=counterc+1
+          else
+            fallidos=$(echo -e "  * $line" >> "$fallidoslog")
+            let counterf=counterf+1
+          fi
+        done < "$origen"
+        let totalpedido=counterc+counterf
+        cp "$logo" "$destino"
+        cp "$urlbm" "$destino"
+        pedido=$(cat "$origen")
+        "$DLG" --title "\Z0Apps - Copia Finalizada" \
+          --backtitle "$BT_APPS" --colors --ok-label "Continuar" --stdout \
+          --msgbox "\n
   ------------ Rutas ------------\n
       Lista ID's  : $origen\n
           Destino : $destino\n
@@ -2536,98 +2594,99 @@ if [[ "$sexit" = 0 ]]; then
      ----------------+-----\n
       Items Pedidos:\n
       $pedido\n\n" 0 0
-      clear
-      pcopiadoslog=$(cat -n "$copiadoslog")
-      dialog --title "\Z0Informe" \
-        --backtitle "$BACKTITLEAPPS" --colors --ok-label "Cerrar" --stdout \
-        --msgbox "$pcopiadoslog" 0 0
-      return
+        clear
+        pcopiadoslog=$(cat -n "$copiadoslog")
+        MSG=$(echo "${pcopiadoslog}")
+        dlg_msg "Apps - Log de Archivos Copiados" "msgbox" "$BT_APPS"
+        return
+      else
+        MSG=$(echo "\nCancelado (Cod. $sexit)")
+        dlg_msg "Apps - Copia de Música" "msgbox" "$BT_APPS"
+        return
+      fi
     else
-      dialog --title "\Z0Warning" \
-        --backtitle "$BACKTITLEAPPS" --colors --ok-label "Cerrar" --stdout \
-        --msgbox "Cancelado" 0 0
+      MSG=$(echo "\nCancelado (Cod. $sexit)")
+      dlg_msg "Apps - Copia de Música" "msgbox" "$BT_APPS"
+      return
     fi
   else
-    dialog --title "\Z0Warning" \
-      --backtitle "$BACKTITLEAPPS" --colors --ok-label "Cerrar" --stdout \
-      --msgbox "Cancelado" 0 0
+    MSG=$(echo "\nCancelado (Cod. $sexit)")
+    dlg_msg "Apps - Copia de Música" "msgbox" "$BT_APPS"
+    return
   fi
-else
-  dialog --title "\Z0Warning" \
-    --backtitle "$BACKTITLEAPPS" --colors --ok-label "Cerrar" --stdout \
-    --msgbox "Cancelado" 0 0
-fi
-main
+  main
 }
 
 books () {
-# Copy books by id
-clear
-counterc=0
-counterf=0
-regdate=$(date)
-cliente=$(dialog --title "\Z0DATOS CLIENTE" \
-  --backtitle "$BACKTITLELIBROS" --colors --ok-label "Guardar" --stdout \
-  --inputbox "Nombre y Apellido (Prefijo):" 0 0)
-if [[ "$?" = 0 ]]; then
-  customerdatareg
-  destino=$(dialog --title "\Z0SELECCIONAR CARPETA DESTINO" \
-    --backtitle "$BACKTITLELIBROS" --colors --ok-label "Seleccionar" --stdout \
-    --fselect "$dialogdest" "$FSHEIGHT" "$FSWIDTH")
-  sexit=$?
-  if [[ "$sexit" = 0 ]]; then
-    # Checking if target directory exist
-    if ! [[ -e "$destino" ]]; then
-      msgnotexist "$destino"
-      main
-    fi
-    origen=$(dialog --title "\Z0RUTA LISTA (ej. lcid.txt)" \
-      --backtitle "$BACKTITLELIBROS" --colors --ok-label "Seleccionar" --stdout \
-      --fselect "$dialogorig" "$FSHEIGHT" "$FSWIDTH")
+  # Copy books by id
+  clear
+  counterc=0
+  counterf=0
+  regdate=$(date)
+  cliente=$(dialog --title "\Z0Libros - Datos de Cliente" \
+    --backtitle "$BT_LIBROS" --colors --ok-label "Guardar" --stdout \
+    --inputbox "Nombre y Apellido (Prefijo):" 0 0)
+  if [[ "$?" = 0 ]]; then
+    customerdatareg
+    destino=$(dialog --title "\Z0Libros - Abrir Carpeta de Destino" \
+      --backtitle "$BT_LIBROS" --colors --ok-label "Seleccionar" --stdout \
+      --fselect "$dialogdest" "$FSHEIGHT" "$FSWIDTH")
     sexit=$?
     if [[ "$sexit" = 0 ]]; then
-      if ! [[ -e "$origen" ]]; then
-        msgnotexist "$origen"
+      # Checking if target directory exist
+      if ! [[ -e "$destino" ]]; then
+        MSG=$(echo "${destino} no existe")
+        dlg_msg "Libros - Abrir Carpeta de Destino" "msgbox" "$BT_LIBROS"
         main
       fi
-      sed -i '/^[[:space:]]*$/d' "$origen"
-      lowtoupcase=$(sed -i "s/l/L/g" "$origen")
-      while read -r line
-      do
-        lct=$(cat "$lallrepos" | grep -iwm 1 "$line") 
-
-        # Imprime con -i ignorando mayúsucalas, -w imprime la línea que coincide
-        # con la palabra entera, -m 1 detiene la impresión después de la primer coincidencia
-        # y no replique repetidos en fallrepos
-
-        lct2=$(grep -Piowm 1 "$line" "$lallrepos")
-
-        # Extráe solo la palabra lct(F####) con -o usando regex de Pearl
-        # con -P, -m 1 detiene la impresión después de la primer coincidencia y no replique
-        # los repetidos en el archivo fallrepos
-
-        if [ "$lct2" = "$line" ]; then
-          fuente=$(grep -Piwm 1 "$line" "$lallrepos")
-
-          # Imprimiendo la línea completa de fallrepos que contiene $line
-          
-          clear
-          copyprogress
-          "$RSYNC" -ah --info=progress2 --log-file="$rsynclog" "$fuente" "$destino"
-          copiados=$(echo -e "  * $line" >> "$copiadoslog")
-          let counterc=counterc+1
-        else
-          fallidos=$(echo -e "  * $line" >> "$fallidoslog")
-          let counterf=counterf+1
+      origen=$(dialog --title "\Z0Libros - Abrir Lista Serializada (ej. lcid.txt)" \
+        --backtitle "$BT_LIBROS" --colors --ok-label "Seleccionar" --stdout \
+        --fselect "$dialogorig" "$FSHEIGHT" "$FSWIDTH")
+      sexit=$?
+      if [[ "$sexit" = 0 ]]; then
+        if ! [[ -e "$origen" ]]; then
+          MSG=$(echo "${origen} no existe")
+          dlg_msg "Libros - Abrir Lista Serializada" "msg" "$BT_LIBROS"
+          main
         fi
-      done < "$origen"
-      let totalpedido=counterc+counterf
-      cp "$logo" "$destino"
-      cp "$urlbf" "$destino"
-      pedido=$(cat "$origen")
-      dialog --title "\Z0COPIA FINALIZADA" \
-        --backtitle "$BACKTITLELIBROS" --colors --ok-label "Continuar" --stdout \
-        --msgbox "\n
+        sed -i '/^[[:space:]]*$/d' "$origen"
+        lowtoupcase=$(sed -i "s/l/L/g" "$origen")
+        while read -r line
+        do
+          lct=$(cat "$lallrepos" | grep -iwm 1 "$line") 
+  
+          # Imprime con -i ignorando mayúsucalas, -w imprime la línea que coincide
+          # con la palabra entera, -m 1 detiene la impresión después de la primer coincidencia
+          # y no replique repetidos en fallrepos
+  
+          lct2=$(grep -Piowm 1 "$line" "$lallrepos")
+  
+          # Extráe solo la palabra lct(F####) con -o usando regex de Pearl
+          # con -P, -m 1 detiene la impresión después de la primer coincidencia y no replique
+          # los repetidos en el archivo fallrepos
+  
+          if [ "$lct2" = "$line" ]; then
+            fuente=$(grep -Piwm 1 "$line" "$lallrepos")
+  
+            # Imprimiendo la línea completa de fallrepos que contiene $line
+            
+            clear
+            copyprogress "$BT_LIBROS"
+            "$RSYNC" -ah --info=progress2 --log-file="$rsynclog" "$fuente" "$destino"
+            copiados=$(echo -e "  * $line" >> "$copiadoslog")
+            let counterc=counterc+1
+          else
+            fallidos=$(echo -e "  * $line" >> "$fallidoslog")
+            let counterf=counterf+1
+          fi
+        done < "$origen"
+        let totalpedido=counterc+counterf
+        cp "$logo" "$destino"
+        cp "$urlbf" "$destino"
+        pedido=$(cat "$origen")
+        "$DLG" --title "\Z0Libros - Copia Finalizada" \
+          --backtitle "$BT_LIBROS" --colors --ok-label "Continuar" --stdout \
+          --msgbox "\n
   ------------ Rutas ------------\n
       Lista ID's  : $origen\n
           Destino : $destino\n
@@ -2641,100 +2700,100 @@ if [[ "$?" = 0 ]]; then
      ----------------+-----\n
     Items Pedidos:\n
       $pedido\n\n" 0 0
-      clear
-      pcopiadoslog=$(cat -n "$copiadoslog")
-      dialog --title "\Z0Informe" \
-        --backtitle "$BACKTITLELIBROS" --colors --ok-label "Cerrar" --stdout \
-        --msgbox "$pcopiadoslog" 0 0
-      return 
+        clear
+        pcopiadoslog=$(cat -n "$copiadoslog")
+        MSG=$(echo "${pcopiadoslog}")
+        dlg_msg "Libros - Log de Archivos Copiados" "msgbox" "$BT_LIBROS"
+        return 
+      else
+        MSG=$(echo "\nCancelado (Cod. $sexit)")
+        dlg_msg "Libros - Copia de Música" "msgbox" "$BT_LIBROS"
+        return
+      fi
     else
-      dialog --title "\Z0Warning" \
-        --backtitle "$BACKTITLELIBROS" --colors --ok-label "Cerrar" --stdout \
-        --msgbox "Cancelado" 0 0
+      MSG=$(echo "\nCancelado (Cod. $sexit)")
+      dlg_msg "Libros - Copia de Música" "msgbox" "$BT_LIBROS"
+      return
     fi
   else
-    dialog --title "\Z0Warning" \
-      --backtitle "$BACKTITLELIBROS" --colors --ok-label "Cerrar" --stdout \
-      --msgbox "Cancelado" 0 0
+    MSG=$(echo "\nCancelado (Cod. $sexit)")
+    dlg_msg "Libros - Copia de Música" "msgbox" "$BT_LIBROS"
+    return
   fi
-
-else
-  dialog --title "\Z0Warning" \
-    --backtitle "$BACKTITLELIBROS" --colors --ok-label "Cerrar" --stdout \
-    --msgbox "Cancelado" 0 0
-fi
-main
+  main
 }
 
 comics () {
-# COMICS  BY ID
-clear
-counterc=0
-counterf=0
-regdate=$(date)
-cliente=$(dialog --title "\Z0DATOS CLIENTE" \
-  --backtitle "$BACKTITLELIBROS" --colors --ok-label "Guardar" --stdout \
-  --inputbox "Nombre y Apellido (Prefijo):" 0 0)
-sexit=$?
-if [[ "$sexit" = 0 ]]; then
-  customerdatareg
-  destino=$(dialog --title "\Z0SELECCIONAR CARPETA DESTINO" \
-    --backtitle "$BACKTITLECOMICS" --colors --ok-label "Seleccionar" --stdout \
-    --fselect "$dialogdest" "$FSHEIGHT" "$FSWIDTH")
+  # COMICS  BY ID
+  clear
+  counterc=0
+  counterf=0
+  regdate=$(date)
+  cliente=$(dialog --title "\Z0Comics - Datos de Cliente" \
+    --backtitle "$BT_LIBROS" --colors --ok-label "Guardar" --stdout \
+    --inputbox "Nombre y Apellido (Prefijo):" 0 0)
   sexit=$?
   if [[ "$sexit" = 0 ]]; then
-    # Checking if target directory exist
-    if ! [[ -e "$destino" ]]; then
-      msgnotexist "$destino"
-      main
-    fi
-    origen=$(dialog --title "\Z0RUTA LISTA (ej. ccid.txt)" \
-      --backtitle "$BACKTITLECOMICS" --colors --ok-label "Seleccionar" --stdout \
-      --fselect "$dialogorig" "$FSHEIGHT" "$FSWIDTH")
+    customerdatareg
+    destino=$(dialog --title "\Z0Comics - Abrir Carpeta de Destino" \
+      --backtitle "$BT_COMICS" --colors --ok-label "Seleccionar" --stdout \
+      --fselect "$dialogdest" "$FSHEIGHT" "$FSWIDTH")
     sexit=$?
     if [[ "$sexit" = 0 ]]; then
-      if ! [[ -e "$origen" ]]; then
-        msgnotexist "$origen"
+      # Checking if target directory exist
+      if ! [[ -e "$destino" ]]; then
+        MSG=$(echo "${destino} no existe")
+        dlg_msg "Comics - Abrir Carpeta de Destino" "msgbox" "$BT_COMICS"
         main
       fi
-      sed -i '/^[[:space:]]*$/d' "$origen"
-      lowtoupcase=$(sed -i "s/c/C/g" "$origen")
-      while read -r line
-      do
-        lct=$(cat "$callrepos" | grep -iwm 1 "$line") 
-
-        # Imprime con -i ignorando mayúsucalas, -w imprime la línea que coincide
-        # con la palabra entera, -m 1 detiene la impresión después de la primer coincidencia
-        # y no replique repetidos en fallrepos
-
-        lct2=$(grep -Piowm 1 "$line" "$callrepos")
-
-        # Extráe solo la palabra lct(F####) con -o usando regex de Pearl
-        # con -P, -m 1 detiene la impresión después de la primer coincidencia y no replique
-        # los repetidos en el archivo fallrepos
-
-        if [ "$lct2" = "$line" ]; then
-          fuente=$(grep -Piwm 1 "$line" "$callrepos")
-
-          # Imprimiendo la línea completa de fallrepos que contiene $line
-         
-          clear
-          copyprogress 
-          "$RSYNC" -ah --info=progress2 --log-file="$rsynclog" "$fuente" "$destino"
-          copiados=$(echo -e "  * $line" >> "$copiadoslog")
-          let counterc=counterc+1
-        else
-          fallidos=$(echo -e "  * $line" >> "$fallidoslog")
-          let counterf=counterf+1
+      origen=$(dialog --title "\Z0Comics - Abrir Lista Serializada (ej. ccid.txt)" \
+        --backtitle "$BT_COMICS" --colors --ok-label "Seleccionar" --stdout \
+        --fselect "$dialogorig" "$FSHEIGHT" "$FSWIDTH")
+      sexit=$?
+      if [[ "$sexit" = 0 ]]; then
+        if ! [[ -e "$origen" ]]; then
+          MSG=$(echo "${origen} no existe")
+          dlg_msg "Comics - Abrir Lista Serializada" "msg" "$BT_COMICS"
+          main
         fi
-      done < "$origen"
-      let totalpedido=counterc+counterf
-      cp "$logo" "$destino"
-      cp "$urlbf" "$destino"
-      pedido=$(cat "$origen")
-      dialog --title "\Z0COPIA FINALIZADA" \
-        --backtitle "$BACKTITLECOMICS" --colors --ok-label "Continuar" --stdout \
-        --msgbox "\n
+        sed -i '/^[[:space:]]*$/d' "$origen"
+        lowtoupcase=$(sed -i "s/c/C/g" "$origen")
+        while read -r line
+        do
+          lct=$(cat "$callrepos" | grep -iwm 1 "$line") 
+  
+          # Imprime con -i ignorando mayúsucalas, -w imprime la línea que coincide
+          # con la palabra entera, -m 1 detiene la impresión después de la primer coincidencia
+          # y no replique repetidos en fallrepos
+  
+          lct2=$(grep -Piowm 1 "$line" "$callrepos")
+  
+          # Extráe solo la palabra lct(F####) con -o usando regex de Pearl
+          # con -P, -m 1 detiene la impresión después de la primer coincidencia y no replique
+          # los repetidos en el archivo fallrepos
+  
+          if [ "$lct2" = "$line" ]; then
+            fuente=$(grep -Piwm 1 "$line" "$callrepos")
+  
+            # Imprimiendo la línea completa de fallrepos que contiene $line
+           
+            clear
+            copyprogress "$BT_COMICS"
+            "$RSYNC" -ah --info=progress2 --log-file="$rsynclog" "$fuente" "$destino"
+            copiados=$(echo -e "  * $line" >> "$copiadoslog")
+            let counterc=counterc+1
+          else
+            fallidos=$(echo -e "  * $line" >> "$fallidoslog")
+            let counterf=counterf+1
+          fi
+        done < "$origen"
+        let totalpedido=counterc+counterf
+        cp "$logo" "$destino"
+        cp "$urlbf" "$destino"
+        pedido=$(cat "$origen")
+        "$DLG" --title "\Z0Comics - Copia Finalizada" \
+          --backtitle "$BT_COMICS" --colors --ok-label "Continuar" --stdout \
+          --msgbox "\n
   ------------ Rutas ------------\n
       Lista ID's  : $origen\n
           Destino : $destino\n
@@ -2748,29 +2807,27 @@ if [[ "$sexit" = 0 ]]; then
      ----------------+-----\n
     Items Pedidos:\n
       $pedido\n\n" 0 0
-      clear
-      pcopiadoslog=$(cat -n "$copiadoslog")
-      dialog --title "\Z0Informe" \
-        --backtitle "$BACKTITLECOMICS" --colors --ok-label "Cerrar" --stdout \
-        --msgbox "$pcopiadoslog" 0 0
-      return 
+        clear
+        pcopiadoslog=$(cat -n "$copiadoslog")
+        MSG=$(echo "${pcopiadoslog}")
+        dlg_msg "Comics - Log de Archivos Copiados" "msgbox" "$BT_COMICS"
+        return 
+      else
+        MSG=$(echo "\nCancelado (Cod. $sexit)")
+        dlg_msg "Comics - Copia de Música" "msgbox" "$BT_COMICS"
+        return
+      fi
     else
-      dialog --title "\Z0Warning" \
-        --backtitle "$BACKTITLECOMICS" --colors --ok-label "Cerrar" --stdout \
-        --msgbox "Cancelado" 0 0
+      MSG=$(echo "\nCancelado (Cod. $sexit)")
+      dlg_msg "Comics - Copia de Música" "msgbox" "$BT_COMICS"
+      return
     fi
   else
-    dialog --title "\Z0Warning" \
-      --backtitle "$BACKTITLECOMICS" --colors --ok-label "Cerrar" --stdout \
-      --msgbox "Cancelado" 0 0
+    MSG=$(echo "\nCancelado (Cod. $sexit)")
+    dlg_msg "Comics - Copia de Música" "msgbox" "$BT_COMICS"
+    return
   fi
-
-else
-  dialog --title "\Z0Warning" \
-    --backtitle "$BACKTITLECOMICS" --colors --ok-label "Cerrar" --stdout \
-    --msgbox "Cancelado" 0 0
-fi
-main
+  main
 }
 
 ######################################
@@ -2778,7 +2835,7 @@ main
 ######################################
 
 configs () {
-  clear
+clear
 echo -e "$SCRIPTNAME - $VERSION\n"
 echo -e "=============================="
 echo -e " Actualizar Dbs e información "
@@ -2836,11 +2893,11 @@ echo ""
 
       # END find - index Movies
 
-          result=$(echo -e "Base de Datos Videos 'fallrepos':\n\n$fallrepos\n\nSUCCESSFUL UPDATED!!!\n\nBase de Datos de Videos Actualizada")
-          display_result "INFORME DB VÍDEOS"
+          MSG=$(echo "\nBase de Datos Videos 'fallrepos':\n\n$fallrepos\n\nSUCCESSFUL UPDATED!!!\n\nBase de Datos de Videos Actualizada")
+          dlg_msg "Configuración Base de Datos" "msgbox" "$BT_CONFIG"
         else
-          result=$(echo -e "Base de Datos de Videos 'fallrepos':\n\n$fallrepos\n\nFAIL UPDATE!!!\n\nFALLÓ Actualización de la Base de Datos de Videos.\n\nTIP: La primera Ruta a los Repositorios debe existir, caso contrario fallará la indexación en las otras rutas agregadas para el módulo Vídeos.")
-          display_result "INFORME DB VÍDEOS"
+          MSG=$(echo "\nBase de Datos de Videos 'fallrepos':\n\n$fallrepos\n\nFAIL UPDATE!!!\n\nFALLÓ Actualización de la Base de Datos de Videos.\n\nTIP: La primera Ruta a los Repositorios debe existir, caso contrario fallará la indexación en las otras rutas agregadas para el módulo Vídeos.")
+          dlg_msg "Configuración Base de Datos" "msgbox" "$BT_CONFIG"
         fi
         configs
         break
@@ -2887,11 +2944,11 @@ echo ""
 
       # END find - index Music 
   
-          result=$(echo -e "Base de Datos de Audios mallrepos:\n\n$mallrepos\n\nSUCCEFUL UPDATED!!! \n\nBase de Datos de Audios Actualizada")
-          display_result "INFORME DB MÚSICA"
+          MSG=$(echo "\nBase de Datos de Audios mallrepos:\n\n$mallrepos\n\nSUCCEFUL UPDATED!!! \n\nBase de Datos de Audios Actualizada")
+          dlg_msg "Configuración Base de Datos" "msgbox" "$BT_CONFIG"
         else
-          result=$(echo -e "Base de Datos de Audios 'mallrepos':\n\n$mallrepos\n\nFAIL UPDATE!!!\n\nFALLÓ Actualización de la Base de Datos de Audios.\n\nTIP: La primera Ruta a los Repositorios debe existir, caso contrario fallará la indexación en las otras rutas agregadas para el módulo audios.")
-          display_result "INFORME DB AUDIOS"
+          MSG=$(echo "\nBase de Datos de Audios 'mallrepos':\n\n$mallrepos\n\nFAIL UPDATE!!!\n\nFALLÓ Actualización de la Base de Datos de Audios.\n\nTIP: La primera Ruta a los Repositorios debe existir, caso contrario fallará la indexación en las otras rutas agregadas para el módulo audios.")
+          dlg_msg "Configuración Base de Datos" "msgbox" "$BT_CONFIG"
         fi
         configs
         break
@@ -2919,11 +2976,11 @@ echo ""
 
      # END find - index Juegos
      
-          result=$(echo -e "Base de Datos de Juegos jallrepos:\n\n$jallrepos\n\nSUCCEFUL UPDATED!!! \n\nBase de Datos de Juegos Actualizada")
-          display_result "INFORME DB JUEGOS"
+          MSG=$(echo "\nBase de Datos de Juegos jallrepos:\n\n$jallrepos\n\nSUCCEFUL UPDATED!!! \n\nBase de Datos de Juegos Actualizada")
+          dlg_msg "Configuración Base de Datos" "msgbox" "$BT_CONFIG"
         else
-          result=$(echo -e "Base de Datos de Juegos 'jallrepos':\n\n$jallrepos\n\nFAIL UPDATE!!!\n\nFALLÓ Actualización de la Base de Datos de Juegos.\n\nTIP: La primera Ruta a los Repositorios debe existir, caso contrario fallará la indexación en las otras rutas agregadas para el módulo Juegos.")
-          display_result "INFORME DB JUEGOS"
+          MSG=$(echo "\nBase de Datos de Juegos 'jallrepos':\n\n$jallrepos\n\nFAIL UPDATE!!!\n\nFALLÓ Actualización de la Base de Datos de Juegos.\n\nTIP: La primera Ruta a los Repositorios debe existir, caso contrario fallará la indexación en las otras rutas agregadas para el módulo Juegos.")
+          dlg_msg "Configuración Base de Datos" "msgox" "BT_CONFIG"
         fi
         configs
         break
@@ -2951,11 +3008,11 @@ echo ""
 
      # END find - index Apps
   
-          result=$(echo -e "Base de Datos de Apps aallrepos:\n\n$aallrepos\n\nSUCCEFUL UPDATED!!! \n\nBase de Datos de Apps Actualizada")
-          display_result "INFORME DB APPS"
+          MSG=$(echo "\nBase de Datos de Apps aallrepos:\n\n$aallrepos\n\nSUCCEFUL UPDATED!!! \n\nBase de Datos de Apps Actualizada")
+          dlg_msg "Configuraación Base de Datos" "msgbox" "$BT_CONFIG"
         else
-          result=$(echo -e "Base de Datos de Apps 'aallrepos':\n\n$aallrepos\n\nFAIL UPDATE!!!\n\nFALLÓ Actualización de la Base de Datos de Apps.\n\nTIP: La primera Ruta a los Repositorios debe existir, caso contrario fallará la indexación en las otras rutas agregadas para el módulo Apps.")
-          display_result "INFORME DB APPS"
+          MSG=$(echo "\nBase de Datos de Apps 'aallrepos':\n\n$aallrepos\n\nFAIL UPDATE!!!\n\nFALLÓ Actualización de la Base de Datos de Apps.\n\nTIP: La primera Ruta a los Repositorios debe existir, caso contrario fallará la indexación en las otras rutas agregadas para el módulo Apps.")
+          dlg_msg "Configuración Base de Datos" "msgbox" "$BT_CONFIG"
         fi
         configs
         break
@@ -2983,11 +3040,11 @@ echo ""
 
       # END find - index Libros
   
-          result=$(echo -e "Base de Datos de Libros lallrepos:\n\n$lallrepos\n\nSUCCEFUL UPDATED!!! \n\nBase de Datos de Libros Actualizada")
-          display_result "INFORME DB LIBROS"
+          MSG=$(echo "\nBase de Datos de Libros lallrepos:\n\n$lallrepos\n\nSUCCEFUL UPDATED!!! \n\nBase de Datos de Libros Actualizada")
+          dlg_msg "Configuración Base de Datos" "msgbox" "$BT_CONFIG"
         else
-          result=$(echo -e "Base de Datos de Libros 'lallrepos':\n\n$lallrepos\n\nFAIL UPDATE!!!\n\nFALLÓ Actualización de la Base de Datos de Libros.\n\nTIP: La primera Ruta a los Repositorios debe existir, caso contrario fallará la indexación en las otras rutas agregadas para el módulo Libros.")
-          display_result "INFORME DB LIBROS"
+          MSG=$(echo "\nBase de Datos de Libros 'lallrepos':\n\n$lallrepos\n\nFAIL UPDATE!!!\n\nFALLÓ Actualización de la Base de Datos de Libros.\n\nTIP: La primera Ruta a los Repositorios debe existir, caso contrario fallará la indexación en las otras rutas agregadas para el módulo Libros.")
+          dlg_msg "Configuración Base de Datos" "msgbox" "$BT_CONFIG"
         fi
         configs
         break
@@ -3015,21 +3072,21 @@ echo ""
 
       # END find - index Comics
 
-          result=$(echo -e "Base de Datos de Comics callrepos:\n\n$callrepos\n\nSUCCEFUL UPDATED!!! \n\nBase de Datos de Comics Actualizada")
-          display_result "INFORME DB COMICS"
+          MSG=$(echo "\nBase de Datos de Comics callrepos:\n\n$callrepos\n\nSUCCEFUL UPDATED!!! \n\nBase de Datos de Comics Actualizada")
+          dlg_msg "Configuración Base de Datos" "msgbox" "$BT_CONFIG"
         else
-          result=$(echo -e "Base de Datos de Comics 'callrepos':\n\n$callrepos\n\nFAIL UPDATE!!!\n\nFALLÓ Actualización de la Base de Datos de Comics.\n\nTIP: La primera Ruta a los Repositorios debe existir, caso contrario fallará la indexación en las otras rutas agregadas para el módulo Comics.")
-          display_result "INFORME DB COMICS"
+          MSG=$(echo "Base de Datos de Comics 'callrepos':\n\n$callrepos\n\nFAIL UPDATE!!!\n\nFALLÓ Actualización de la Base de Datos de Comics.\n\nTIP: La primera Ruta a los Repositorios debe existir, caso contrario fallará la indexación en las otras rutas agregadas para el módulo Comics.")
+          dlg_msg "Configuración Base de Datos" "msgbox" "$BT_CONFIG"
         fi
         configs
         break
       ;;
       "Dispositivos Montados y Tamaño")
         clear
-        result=$(lsblk -o PATH,LABEL,FSTYPE,PTTYPE,FSSIZE,FSUSED,MOUNTPOINT)
-        display_result "Dispositivos Montados"
-        result=$(df -H)
-        display_result "Tamaño disponible"
+        MSG=$(printf "\n";lsblk -o PATH,LABEL,FSTYPE,PTTYPE,FSSIZE,FSUSED,MOUNTPOINT)
+        dlg_msg "Configuración Base de Datos - Dispositivos Montados y Tamaño" "msgbox" "$BT_CONFIG"
+        MSG=$(printf "\n";df -H)
+        dlg_msg "Configuración Base de Datos - Dispositivos Montados y Tamaño" "msgbox" "$BT_CONFIG"
         configs
         break
       ;;
@@ -3037,10 +3094,8 @@ echo ""
         clear
         script_path
         # Show variables from mdialog_conf 
-        verconfig=$(grep -E "^(.*=)+" ${PWDSCRIPT}/mdialog_conf)
-        dialog --title "\Z0Configuraciones" \
-          --colors --ok-label "Cerrar" --stdout \
-          --msgbox "$verconfig" 31 82
+        MSG=$(grep -E "^(.*=)+" ${PWDSCRIPT}/mdialog_conf)
+        dlg_msg "Configuración Base de Datos" "msgbox" "$BT_CONFIG"
         configs
         break
       ;;
@@ -3123,7 +3178,14 @@ echo ""
           "Libro:"                            68 1 "$pbook"        68 12 7 10 \
           "============================================================="  69 1 ""               69 0 0 0 \
           "Precios Comics"                    70 1 ""              70 0 0 0 \
-          "Comic:"                            71 1 "$pcomic"       71 12 7 10 
+          "Comic:"                            71 1 "$pcomic"       71 12 7 10 \
+          "============================================================="  72 1 ""               69 0 0 0 \
+          "Programas Ruta"                    73 1 ""              73 0 0 0 \
+          "dialog:"                           74 1 "$DLG"          74 12 50 100 \
+          "rsync:"                            75 1 "$RSYNC"        75 12 50 100 \
+          "============================================================="  76 1 ""                69 0 0 0 \
+          "Contraseña para Serializar"        77 1 ""              77 0 0 0 \
+          "Contraseña:"                       78 1 "$PASSWARNING"  78 12 50 100
           )
 
         sexit=$?
@@ -3183,6 +3245,11 @@ echo ""
           ppbook=$(sed "44q;d" "$tempconf")
           # Comics prices
           ppcomic=$(sed "45q;d" "$tempconf")
+          # Path programs
+          dialogapp=$(sed "46q;d" "$tempconf")
+          rsyncapp=$(sed "47q;d" "$tempconf")
+          # Password for serialize files
+          serialpass=$(sed "48q;d" "$tempconf")
 
           # Updating configuration
           sed -i -r "s#^(dialogdest=).*#\1\"$destino\"#" "$configfile"
@@ -3239,17 +3306,23 @@ echo ""
           sed -i -r "s#^(pbook=).*#\1\"$ppbook\"#" "$configfile"
           # Comics prices
           sed -i -r "s#^(pcomic=).*#\1\"$ppcomic\"#" "$configfile"
+          # Programs
+          sed -i -r "s#^(DLG=).*#\1\"$dialogapp\"#" "$configfile"
+          sed -i -r "s#^(RSYNC=).*#\1\"$rsyncapp\"#" "$configfile"
+          # Password for serialized files
+          sed -i -r "s#^(PASSWARNING=).*#\1\"$serialpass\"#" "$configfile"
 
-          dialog --title "\Z0AVISO" \
-            --colors --stdout \
-            --msgbox "Configuración Guardada.\n\nEl programa se cerrará automáticamente para que refleje la nueva configuración.\n\nLuego Vuelva a ejecutar dryncsnsx." 0 0
+          MSG=$(echo "\nConfiguración Guardada.\n\nEl programa se cerrará automáticamente para que refleje la nueva configuración.\n\nLuego Vuelva a ejecutar dryncsnsx.")
+          dlg_msg "Configuración Base de Datos" "msgbox" "$BT_CONFIG"
+
           clear
           exit 0
         else
-          dialog --title "\Z0AVISO" \
-            --colors --ok-label "Cerrar" --stdout \
-            --msgbox "Configuración Cancelada." 0 0
+          if [ "$sexit" = 1 ] || [ "$sexit" = 255 ]; then
+          MSG=$(echo "\nCancelado (Cod. $sexit)")
+          dlg_msg "Configuración Base de Datos" "msgbox" "$BT_CONFIG"
           configs
+          fi
         fi
         break
       ;;
@@ -3278,8 +3351,8 @@ echo ""
         echo "" > "$xlallrepos"
         # search module x music files or directories
         echo "" > "$xmallrepos2"
-        result=$(echo "\nPaths + File Sizes DB's + db search Limpiadas.\n")
-        display_result "INFORME LIMPIEZA DE DB's"
+        MSG=$(echo "\nPaths + File Sizes DB's + db search Limpiadas.\n")
+        dlg_msg "Configuración Base de Datos - Limpieza de DB's" "msgbox" "$BT_CONFIG"
         configs
         break
       ;;
@@ -3291,8 +3364,8 @@ echo ""
         echo "" > "$lorder"
         echo "" > "$jorder"
         echo "" > "$aorder"
-        result=$(echo -e "\nPedidos Limpiados.\n\nfcid.txt\nccid.txt\njcid.txt\nacid.txt\nmcid.txt\nlcid.txt\n")
-        display_result "INFORME LIMPIEZA DE PEDIDOS"
+        MSG=$(echo "\nPedidos Limpiados.\n\nfcid.txt\nccid.txt\njcid.txt\nacid.txt\nmcid.txt\nlcid.txt\n")
+        dlg_msg "Configuración Base de Datos - Limpieza de Pedidos" "msgbox" "$BT_CONFIG"
         configs
         break
       ;;
@@ -3301,8 +3374,8 @@ echo ""
         echo "" > "$copiadoslog"
         echo "" > "$fallidoslog"
         echo "" > "$rsynclog"
-        result=$(echo "\nLogs Limpiados.\n")
-        display_result "INFORME LIMPIEZA DE LOGs"
+        MSG=$(echo "\nLogs Limpiados.\n")
+        dlg_msg "Configuración Base de Datos - Limpieza de Logs" "msgbox" "$BT_CONFIG"
         configs
         break
       ;;
@@ -3323,12 +3396,12 @@ helpman () {
   HELPERMAN="${PWDSCRIPT}/docs/help.txt"
   if [[ -f "$HELPERMAN" ]]; then
     dialog --title "\Z0Ayuda" \
-      --colors --stdout \
+      --backtitle "$BT_CONFIG" --colors --stdout \
       --textbox "$HELPERMAN" 0 0
     main
   else
-    result="${HELPERMAN} not found"
-    display_result "WARNING"
+    MSG=$(echo "${HELPERMAN} not found")
+    dlg_msg "Ayuda" "msgbox" "$BT_CONFIG"
     main
   fi
 }
@@ -3337,15 +3410,8 @@ helpman () {
 # Search functions
 ###################
 
-searchcancel () {
-  reportresult=$(echo "Búsqueda Cancelada")
-  dialog --title "\Z0$1" \
-    --colors --ok-label "Cerrar" --stdout --no-collapse \
-    --msgbox "$reportresult" 0 0
-}
-
 searchmodule () {
-  clear
+clear
 echo -e "$SCRIPTNAME - $VERSION\n"
 echo -e "============================"
 echo -e " Búscar en la Base de Datos "
@@ -3358,138 +3424,139 @@ echo ""
   select choice in "Buscar Películas" "Buscar Música" "Buscar Juegos"  "Buscar Apps" "Buscar Libros"  "Buscar Comics" "Volver al Submenú Creación de listas de Pedido"; do
     case $choice in
       "Buscar Películas")
-        strsearch=$(dialog --title "\Z0BUSCAR VIDEO" \
-          --backtitle "$BACKTITLEMUSIC" --colors --ok-label "Buscar" --stdout \
+        strsearch=$(dialog --title "\Z0Buscar Video" \
+          --backtitle "$BT_MUSIC" --colors --ok-label "Buscar" --stdout \
           --inputbox "" 0 0)
         sexit=$?
         if [[ "$sexit" = 0 ]]; then
           # Searching case insensitive words
           srtmatch=$(sed -n "/$strsearch/Ip" "$xfallrepos" | cat -n $1)
-          dialog --title "\Z0RESULTADO DE BÚSQUEDA DE VIDEOS" \
-            --backtitle "$BACKTITLEMUSIC" --colors --ok-label "Cerrar" --stdout \
-            --msgbox "$srtmatch" 13 65
+          MSG=$(printf "\n%s\n" "${srtmatch}")
+          dlg_msg "Videos - Resultado de Búsqueda de Videos" "msgbox" "$BT_VIDEO"
           searchmodule
         else
-          searchcancel "AVISO"
+          MSG=$(printf "\n%s\n" "Cancelado (Cod. $sexit)")
+          dlg_msg "Videos - Resultado de Búsqueda" "msgbox" "$BT_VIDEO"
           searchmodule
         fi
         break
       ;;
       "Buscar Música")
         # Dialog Yes No
-        dialog --title "\Z0Escoja una Opción" \
-          --backtitle "$BACKTITLEMUSIC" --colors --yes-label "Buscar Track" --no-label "Buscar Álbum" --stdout \
+        dialog --title "\Z0Música - Escoja una Opción" \
+          --backtitle "$BT_MUSIC" --colors --yes-label "Buscar Track" --no-label "Buscar Álbum" --stdout \
           --yesno "1) Buscar por Track\n2) Buscar por Álbum.\nESC) Presione Escape para Cancelar\n" 0 0
         sexit=$?
         # Cancelando búsqueda si se presiona tecla escape
         if [[ "$sexit" = 255 ]]; then
-          searchcancel "AVISO"
+          MSG=$(printf "\n%s\n" "Cancelado (Cod. $sexit)")
+          dlg_msg "Música - Resultado de Búsqueda" "msgbox" "$BT_MUSIC"
           searchmodule
         fi
         if [[ "$sexit" = 0 ]]; then
-          strsearch=$(dialog --title "\Z0BUSCAR MÚSICA" \
-            --backtitle "$BACKTITLEMUSIC" --colors --ok-label "Buscar" --stdout \
+          strsearch=$(dialog --title "\Z0Buscar Música" \
+            --backtitle "$BT_MUSIC" --colors --ok-label "Buscar" --stdout \
             --inputbox "" 0 0)
           sexit=$?
           if [[ "$sexit" = 0 ]]; then
             # Searching case insensitive words
             srtmatch=$(sed -n "/$strsearch/Ip" "$xmallrepos2" | cat -n $1)
-            dialog --title "\Z0RESULTADO DE BÚSQUEDA DE MÚSICA" \
-              --backtitle "$BACKTITLEMUSIC" --colors --ok-label "Cerrar" --stdout \
-              --msgbox "$srtmatch" 23 85
+            MSG=$(printf "\n%s\n" "${srtmatch}")
+            dlg_msg "Música - Resultado de Búsqueda" "msgbox" "$BT_MUSIC"
             searchmodule
           else
-            searchcancel "AVISO"
+            MSG=$(printf "\n%s\n" "Cancelado (Cod. $sexit)")
+            dlg_msg "Música - Resultado de Búsqueda" "msgbox" "$BT_MUSIC"
             searchmodule
           fi
           break
         else
-          strsearch=$(dialog --title "\Z0BUSCAR MÚSICA" \
-            --backtitle "$BACKTITLEMUSIC" --colors --ok-label "Buscar" --stdout \
+          strsearch=$(dialog --title "\Z0Buscar Música" \
+            --backtitle "$BT_MUSIC" --colors --ok-label "Buscar" --stdout \
             --inputbox "" 0 0)
           sexit=$?
           if [[ "$sexit" = 0 ]]; then
             # Searching case insensitive words
             srtmatch=$(sed -n "/$strsearch/Ip" "$xmallrepos" | cat -n $1)
-            dialog --title "\Z0RESULTADO DE BÚSQUEDA DE MÚSICA" \
-              --backtitle "$BACKTITLEMUSIC" --colors --ok-label "Cerrar" --stdout \
-              --msgbox "$srtmatch" 23 85
+            MSG=$(printf "\n%s\n" "${srtmatch}")
+            dlg_msg "Música - Resultado de Búsqueda" "msgbox" "$BT_MUSIC"
             searchmodule
           else
-            searchcancel "AVISO"
+            MSG=$(printf "\n%s\n" "Cancelado (Cod. $sexit)")
+            dlg_msg "Música - Resultado de Búsqueda" "msgbox" "$BT_MUSIC"
             searchmodule
           fi
           break
         fi
       ;;
       "Buscar Juegos")
-        strsearch=$(dialog --title "\Z0BUSCAR JUEGOS" \
-          --backtitle "$BACKTITLEJUEGOS" --colors --ok-label "Buscar" --stdout \
+        strsearch=$(dialog --title "\Z0Buscar Juegos" \
+          --backtitle "$BT_JUEGOS" --colors --ok-label "Buscar" --stdout \
           --inputbox "" 0 0)
         sexit=$?
         if [[ "$sexit" = 0 ]]; then
           # Searching case insensitive words
           srtmatch=$(sed -n "/$strsearch/Ip" "$xjallrepos" | cat -n $1)
-          dialog --title "\Z0RESULTADO DE BÚSQUEDA DE JUEGOS" \
-            --backtitle "$BACKTITLEJUEGOS" --colors --ok-label "Cerrar" --stdout \
-            --msgbox "$srtmatch" 13 65
+          MSG=$(printf "\n%s\n" "${srtmatch}")
+          dlg_msg "Juegos - Resultado de Búsqueda" "msgbox" "$BT_JUEGOS"
           searchmodule
         else
-          searchcancel "AVISO"
+          MSG=$(printf "\n%s\n" "Cancelado (Cod. $sexit)")
+          dlg_msg "Juegos - Resultado de Búsqueda" "msgbox" "$BT_JUEGOS"
           searchmodule
         fi
         break
       ;;
       "Buscar Apps")
-        strsearch=$(dialog --title "\Z0BUSCAR APPS" \
-          --backtitle "$BACKTITLEAPPS" --colors --ok-label "Buscar" --stdout \
+        strsearch=$(dialog --title "\Z0Buscar Apps" \
+          --backtitle "$BT_APPS" --colors --ok-label "Buscar" --stdout \
           --inputbox "" 0 0)
         sexit=$?
         if [[ "$sexit" = 0 ]]; then
           # Searching case insensitive words
           srtmatch=$(sed -n "/$strsearch/Ip" "$xaallrepos" | cat -n $1)
-          dialog --title "\Z0RESULTADO DE BÚSQUEDA DE APPS" \
-            --backtitle "$BACKTITLEAPPS" --colors --ok-label "Cerrar" --stdout \
-            --msgbox "$srtmatch" 13 65
+          MSG=$(printf "\n%s\n" "${srtmatch}")
+          dlg_msg "Apps - Resultado de Búsqueda" "msgbox" "$BT_APPS"
           searchmodule
         else
-          searchcancel "AVISO"
+          MSG=$(printf "\n%s\n" "Cancelado (Cod. $sexit)")
+          dlg_msg "Apps - Resultado de Búsqueda" "msgbox" "$BT_APPS"
           searchmodule
         fi
         break
       ;;
       "Buscar Libros")
         strsearch=$(dialog --title "\Z0BUSCAR LIBROS" \
-          --backtitle "$BACKTITLELIBROS" --colors --ok-label "Buscar" --stdout \
+          --backtitle "$BT_LIBROS" --colors --ok-label "Buscar" --stdout \
           --inputbox "" 0 0)
         sexit=$?
         if [[ "$sexit" = 0 ]]; then
           # Searching case insensitive words
           srtmatch=$(sed -n "/$strsearch/Ip" "$xlallrepos" | cat -n $1)
-          dialog --title "\Z0RESULTADO DE BÚSQUEDA DE LIBROS" \
-            --backtitle "$BACKTITLELIBROS" --colors --ok-label "Cerrar" --stdout \
-            --msgbox "$srtmatch" 13 65
+          MSG=$(printf "\n%s\n" "${srtmatch}")
+          dlg_msg "Libros - Resultado de Búsqueda" "msgbox" "$BT_LIBROS"
           searchmodule
         else
-          searchcancel "AVISO"
+          MSG=$(printf "\n%s\n" "Cancelado (Cod. $sexit)")
+          dlg_msg "Libros - Resultado de Búsqueda" "msgbox" "$BT_LIBROS"
           searchmodule
         fi
         break
       ;;
       "Buscar Comics")
         strsearch=$(dialog --title "\Z0BUSCAR COMICS" \
-          --backtitle "$BACKTITLECOMICS" --colors --ok-label "Buscar" --stdout \
+          --backtitle "$BT_COMICS" --colors --ok-label "Buscar" --stdout \
           --inputbox "" 0 0)
         sexit=$?
         if [[ "$sexit" = 0 ]]; then
           # Searching case insensitive words
           srtmatch=$(sed -n "/$strsearch/Ip" "$xcallrepos" | cat -n $1)
-          dialog --title "\Z0RESULTADO DE BÚSQUEDA DE COMICS" \
-            --backtitle "$BACKTITLECOMICS" --colors --ok-label "Cerrar" --stdout \
-            --msgbox "$srtmatch" 13 65
+          MSG=$(printf "\n%s\n" "${srtmatch}")
+          dlg_msg "Comics - Resultado de Búsqueda" "msgbox" "$BT_COMICS"
           searchmodule
         else
-          searchcancel "AVISO"
+          MSG=$(printf "\n%s\n" "Cancelado (Cod. $sexit)")
+          dlg_msg "Comics - Resultado de Búsqueda" "msgbox" "$BT_COMICS"
           searchmodule
         fi
         break
@@ -3515,13 +3582,13 @@ echo ""
 
 dlg_serial () {
   "$DLG" --title "\Z0$1" \
-    --backtitle "$BACKTITLESERIALIZE" --colors --stdout \
+    --backtitle "$BT_SERIALIZE" --colors --stdout \
     --"$2" "$MSG_SERIAL" 0 0
 }
 
 dlg_yesno_serial () {
   "$DLG" --title "\Z0$1" \
-    --backtitle "$BACKTITLESERIALIZE" --colors --yes-label "Archivos" --no-label "Directorios" --stdout \
+    --backtitle "$BT_SERIALIZE" --colors --yes-label "Archivos" --no-label "Directorios" --stdout \
     --"$2" "$MSG_SERIAL" 0 0
 }
 
@@ -3533,7 +3600,7 @@ serialfiles () {
   dlg_serial "AVISO" "msgbox"
 
   PPDATA=$(dialog --title "\Z0Contraseña de Acceso" \
-    --backtitle "$BACKTITLESERIALIZE" --clear --colors --stdout \
+    --backtitle "$BT_SERIALIZE" --clear --colors --stdout \
     --insecure --passwordbox "Contraseña de paso configurada en:\nmdialog_conf" 10 30 2 )
   sexit=$?
   if [ "$sexit" =  1 ] || [ "$sexit" = 255 ]; then
@@ -3588,7 +3655,7 @@ EOF
       # Dimensiones para serial form alto=9 ancho=31 alto-formulario=3
 
       fserialform=$(dialog --title "\Z0Formulario de Serialización" \
-        --backtitle "$BACKTITLESERIALIZE" --colors --ok-label "Generar" --stdout \
+        --backtitle "$BT_SERIALIZE" --colors --ok-label "Generar" --stdout \
         --form "Rellene los campos.\nLetra: A, P, Docs, etc.\nNúmero: Num. inicial" 9 31 3 \
         "Letra:" 1 1 "" 1 9 22 10 \
         "Número:" 2 1 "" 2 9 22 10)
@@ -3611,7 +3678,7 @@ EOF
         # Selección de directorio
 
         fselectdir=$(dialog --title "\Z0Serialización de Archivos - Seleccionar Directorio" \
-          --backtitle "$BACKTITLESERIALIZE" --colors --stdout \
+          --backtitle "$BT_SERIALIZE" --colors --stdout \
           --fselect "$dialogdest" "$FSHEIGHT" "$FSWIDTH")
         sexit=$?
         if [ "$sexit" = 1 ] || [ "$sexit" = 255 ]; then
@@ -3719,7 +3786,7 @@ EOF
       # Dimensiones para serial form alto=9 ancho=31 alto-formulario=3
 
       dserialform=$(dialog --title "\Z0Formulario de Serialización de Directorios" \
-        --backtitle "$BACKTITLESERIALIZE" --colors --ok-label "Generar" --stdout \
+        --backtitle "$BT_SERIALIZE" --colors --ok-label "Generar" --stdout \
         --form "Rellene los campos.\nLetra: A, P, Docs, etc.\nNúmero: Num. inicial" 9 31 3 \
         "Letra:" 1 1 "" 1 9 22 10 \
         "Número:" 2 1 "" 2 9 22 10)
@@ -3742,7 +3809,7 @@ EOF
         # Selección de directorio
 
         dselectdir=$(dialog --title "\Z0Serialización de Directorios - Seleccionar Directorio" \
-          --backtitle "$BACKTITLESERIALIZE" --colors --stdout \
+          --backtitle "$BT_SERIALIZE" --colors --stdout \
           --fselect "$dialogdest" "$FSHEIGHT" "$FSWIDTH")
         sexit=$?
         if [ "$sexit" = 1 ] || [ "$sexit" = 255 ]; then
