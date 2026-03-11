@@ -1,6 +1,6 @@
 # dryncsnsx
 
-dryncsnsx ``4.2.1`` unstable versión launched. 2026/03/01 \
+dryncsnsx ``4.2.12` stable versión launched. 2026/03/11 \
 For test this versión just clone or download
 
 Copy serialized files listed from a text file, from local pc or remote pc to other place. (very faster!!!)
