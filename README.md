@@ -6,15 +6,16 @@ For test this versión just clone or download
 Copy serialized files listed from a text file, from local pc or remote pc to other place. (very faster!!!)
 For Linux and Windows (Cygwin)
 
-Copy from 3 source to 1 target - serialized files and directories
+Copy from 10+ source to 1 target - serialized files and directories
 
-<img width="875" height="503" alt="imagen" src="https://github.com/user-attachments/assets/8ff8cf60-2898-4ac4-a96d-9940e3a4a9fd" />
+<img width="743" height="525" alt="imagen" src="https://github.com/user-attachments/assets/c62790b7-d62e-4c1b-a0de-b1db17a8d523" />
 
 
 Tested in:
-
+* Debian 13 Trixie
 * Debian 12 bookworm
 * Linux Mint 22.1
+* Windows 10 (Cygwin)
 
 ## Install
 
@@ -29,7 +30,7 @@ Istalling in your ``<home>/Programs/``
 
 ## Requirements
 
-Dialog **Version: 1.3-20230209**, rsync, bash 5.2, lsblk, blkid, perl, coreutils, samba server (optional), samba client (optional).\
+Dialog **Version: 1.3-20230209**, rsync, bc, bash 5.2, lsblk, blkid, perl, coreutils, samba server (optional), samba client (optional).\
 Samba Server for copy from shared resources.
 
 We saw issues with the dimensions dialog boxes with Versions from (-)2019 , use the last update for Dialog program, check the version with:
