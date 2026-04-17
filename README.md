@@ -1,6 +1,6 @@
 # dryncsnsx
 
-dryncsnsx ``4.2.2`` stable version. Launched 2026/03/11 \
+dryncsnsx ``4.3`` unstable version. Launched 2026/04/17 \
 For test this versión just clone or download
 
 Copy serialized files listed from a text file, from local pc or remote pc to other place. (very faster!!!)
