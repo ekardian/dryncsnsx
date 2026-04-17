@@ -6,7 +6,7 @@ dryncs - https://github.com/ekardian/dryncs/wiki
 dryncsnsx - https://github.com/ekardian/dryncsnsx/wiki
 
 Index
-
+- Keys to navigate through windows
 - What this script does
 - First configure the program if not it will fail
 - Update Databases
@@ -16,6 +16,20 @@ Index
 - Explaining command options used with rsync
 - Explaining reports
 - Serialize files or directorios
+
+- KEYS TO NAVIGATE THROUGH WINDOWS
+
+  * Arrow keys for navigate on windows dialogs
+    left - top - rigth - down
+  * Press two time space bar for select directories
+    the selected directorie appear in the text bar
+  * Press one time for select files
+  * You can write manually the directories and pressing
+    the bar for select
+  * Escape key for close windows, but not the copy process
+    for that just press CTRL + C
+  * Mouse work on all windows
+
 
 - WHAT THIS SCRIPT DOES
 
@@ -253,6 +267,9 @@ Index
   --log-file Write log file
   -R Read the 'man rsync'
 
+   Note. You can use -aP for resume failed copies. Read man rsync
+         and feel free to change the code.
+
 For more details about the recursion copy check the 'man rsync'.
 
 - EXPLAINING REPORTS
@@ -293,3 +310,14 @@ For more details about the recursion copy check the 'man rsync'.
   ./Álbum-a -> ./Álbum-a-F1
   ./Álbum-b -> ./Álbum-b-F2
   ./Álbum-c -> ./Álbum-c-F3
+
+------------------------------------------------------------------
+      _                                                          
+   __| |  _ __   _   _   _ __     ___   ___   _ __    ___  __  __
+  / _` | | '__| | | | | | '_ \   / __| / __| | '_ \  / __| \ \/ /
+ | (_| | | |    | |_| | | | | | | (__  \__ \ | | | | \__ \  >  < 
+  \__,_| |_|     \__, | |_| |_|  \___| |___/ |_| |_| |___/ /_/\_\
+                 |___/                                           
+
+https://github.com/ekardian/dryncsnsx#donation
+------------------------------------------------------------------

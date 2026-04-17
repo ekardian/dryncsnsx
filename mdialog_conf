@@ -11,20 +11,38 @@
 #    CONFIG   #
 ###############
 
+# If you make a bad configuration?, use the default configuration again.
+# cd ~/repository-cloned
+# cp -v mdialog_conf.inc mdialog_conf
+
+# THEMES FOR DRYNCSNSX
+
+# Read manual https://bash.cyberciti.biz/guide/.dialogrc
+# for build your own theme you must  generate one on themes directory
+# $ dialog --create-file ~/Programs/dryncsnsx.git/themes/dialogrc.mytheme
+# and write your new theme in dryncstheme, not the entire name file, only "mytheme" word
+
+# Theme options: blue, dark, default. Default change to your bash or emulator default color
+dryncstheme="blue"
+
+# Theme directory
+themes_dir="$HOME/Programs/dryncsnsx.git/themes/"
+
+# BIN PATHS REQUERIMENTS
+
 # Path to dialog program
 DLG="/usr/bin/dialog"
 
 # Path to rsync program
 RSYNC="/usr/bin/rsync"
 
-# If you make a bad configuration?, use the default configuration again.
-# cd ~/repository-cloned
-# cp -v mdialog_conf.inc mdialog_conf
+# SOURCE AND TARGET DIRECTORIES FOR COPYING THE ITEMS
+
+# Target and Source path, you can leave in blank, anyway when run the
+# drycnsnsx modules, the script gonna ask your the source/target directory 
+# Tip: You can fill with a local path or to the shared samba mount point
 
 # Default target directory.
-
-# Target and Source path, you can leave in blank. Example: You can fill
-# with a local path or to the shared samba mount point
 
 dialogdest="$HOME/Programs/dryncsnsx.git/"
 
@@ -75,6 +93,15 @@ xcallrepos="$HOME/Programs/dryncsnsx.git/db/xcallrepos"
 xlallrepos="$HOME/Programs/dryncsnsx.git/db/xlallrepos"
 xjallrepos="$HOME/Programs/dryncsnsx.git/db/xjallrepos"
 xaallrepos="$HOME/Programs/dryncsnsx.git/db/xaallrepos"
+
+# Database x index music size+path+file+ lct_code 
+# this will be dumped to xmallrepos2
+# find -type f -printf "-%s -%p\n" | numfmt --invalid=ignore --to=iec  "$pmallrepos3"
+pmallrepos3="$HOME/Programs/dryncsnsx.git/db/pmallrepos3"
+
+# Music id code -M### dumped
+# code: grep -Eo "\-M[Z0-9.-]+" "$pmallrepos3" | | sort -u -k,1 > "$Pmlct"
+Pmlct="$HOME/Programs/dryncsnsx.git/db/pmlct"
 
 # ORDERS saved or to save in text file
 # this its only for an direct open to this orders files
@@ -136,12 +163,12 @@ pcomic="1"
 # For Cygwin write the absolute path. Example:
 # fsourcepath="/cygdrive/unidad/REPO_PELICULAS/"
 
-msourcepath="/path/to/music/"
-fsourcepath="/path/to/videos/"
-csourcepath="/path/to/comics/"
-lsourcepath="/path/to/books/"
-jsourcepath="/path/to/games/"
-asourcepath="/path/to/apps/"
+msourcepath1="/path/to/music/"
+fsourcepath1="/path/to/videos/"
+csourcepath1="/path/to/comics/"
+lsourcepath1="/path/to/books/"
+jsourcepath1="/path/to/games/"
+asourcepath1="/path/to/apps/"
 
 # If you have more things in other place, write the paths here
 # For copy the files is not necessary to fill all the paths
@@ -194,30 +221,27 @@ EOF
 )
 
 # Password for rename files
-
 PASSWARNING="change-me"
 
 # For Cygwin(Windows) fill with the full path
 # /cygdrive/path/to/reports/
 
 # Path Reports
-
 clientreports="$HOME/Programs/dryncsnsx.git/reports/"
 
 # Path Logs
-
 copiadoslog="$HOME/Programs/dryncsnsx.git/log/copiados.log"
 
 # Log failed Copied
-
 fallidoslog="$HOME/Programs/dryncsnsx.git/log/fallidos.log"
 
 # Log rsync
-
 rsynclog="$HOME/Programs/dryncsnsx.git/log/dryncs.log"
 
-# Nfos
+# Log db's
+Db_log="$HOME/Programs/dryncsnsx.git/log/db.log"
 
+# Nfos
 urlbf="$HOME/Programs/dryncsnsx.git/nfo/Buscador de Películas Clips.url"
 urlbm="$HOME/Programs/dryncsnsx.git/nfo/Buscador de Música Clips.url"
 urlbj="$HOME/Programs/dryncsnsx.git/nfo/Buscador de Juegos Clips.url"
