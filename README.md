@@ -30,7 +30,7 @@ Istalling in your ``<home>/Programs/``
 
 ## Requirements
 
-Dialog **Version: 1.3-20230209**, rsync, bc, bash 5.2, lsblk, blkid, perl, coreutils, samba server (optional), samba client (optional).\
+Dialog **Version: 1.3-20230209**, rsync, bc, bash 5.2, lsblk, blkid, perl, coreutils, samba server (optional), samba client (optional), zip, unzip.\
 Samba Server for copy from shared resources.
 
 We saw issues with the dimensions dialog boxes with Versions from (-)2019 , use the last update for Dialog program, check the version with:
