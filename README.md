@@ -1,6 +1,6 @@
 # dryncsnsx
 
-dryncsnsx ``4.3`` unstable version. Launched 2026/04/17 \
+dryncsnsx ``4.4.1`` stable version. Launched 2026/05/13 \
 For test this versión just clone or download
 
 Copy serialized files listed from a text file, from local pc or remote pc to other place. (very faster!!!)
@@ -30,7 +30,20 @@ Istalling in your ``<home>/Programs/``
 
 ## Requirements
 
-Dialog **Version: 1.3-20230209**, rsync, bc, bash 5.2, lsblk, blkid, perl, coreutils, samba server (optional), samba client (optional), zip, unzip.\
+* dialog **(Version: 1.3-20230209)**
+* rsync
+* bc
+* bash **(Version 5.2)**
+* lsblk
+* blkid
+* cups
+* perl
+* coreutils
+* samba server (optional)
+* samba client (optional)
+* zip,
+* unzip
+
 Samba Server for copy from shared resources.
 
 We saw issues with the dimensions dialog boxes with Versions from (-)2019 , use the last update for Dialog program, check the version with:
