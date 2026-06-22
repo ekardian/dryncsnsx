@@ -41,7 +41,7 @@ Istalling in your ``<home>/Programs/``
 * coreutils
 * samba server (optional)
 * samba client (optional)
-* zip,
+* zip
 * unzip
 
 Samba Server for copy from shared resources.
