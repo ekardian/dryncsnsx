@@ -10,6 +10,7 @@ Copy from 10+ source to 1 target - serialized files and directories
 
 <img width="743" height="525" alt="imagen" src="https://github.com/user-attachments/assets/c62790b7-d62e-4c1b-a0de-b1db17a8d523" />
 
+For collet your media you can use [Tellico](https://tellico-project.org/) or [Gcstar](https://gitlab.com/GCstar/GCstar)
 
 Tested in:
 * Debian 13 Trixie
