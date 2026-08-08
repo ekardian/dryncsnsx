@@ -24,7 +24,7 @@
 
 # Theme options: bee, blue, dark, magenta, default.
 # Default change to your bash or emulator default color
-dryncstheme="default"
+dryncstheme="dark"
 
 # Theme directory
 themes_dir="$HOME/Programs/dryncsnsx.git/themes/"
