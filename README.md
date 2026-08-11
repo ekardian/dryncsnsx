@@ -19,7 +19,7 @@ Tested in:
 * Windows 10 (Cygwin)
 
 <details>
-    <summary><b>Tools for collect your media and tag tools</b></summary>
+    <summary><b>Tools for collect your media and media tag tools</b></summary>
     
 * [Tellico](https://tellico-project.org/) - Collection manager for books, videos, music, etc.
 * [Gcstar](https://gitlab.com/GCstar/GCstar).  Create and manage collections of books, videos, comics, music, games, etc.
