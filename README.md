@@ -8,8 +8,6 @@ For Linux and Windows (Cygwin)
 
 Copy from 10+ source to 1 target - serialized files and directories
 
-For collet your media you can use [Tellico](https://tellico-project.org/) or [Gcstar](https://gitlab.com/GCstar/GCstar). 
-
 <img width="731" height="437" alt="image" src="https://github.com/user-attachments/assets/9e423852-511c-4c84-8e3c-d3fc9614ef86" />
 
 For a good performance and balanced network (redundancy) use two (NIC) gigabit network cards and raid 1.
@@ -20,15 +18,25 @@ Tested in:
 * Linux Mint 22.1
 * Windows 10 (Cygwin)
 
+<details>
+    <summary><b>Tools for collect your media and tag tools</b></summary>
+* [Tellico](https://tellico-project.org/)
+* [Gcstar](https://gitlab.com/GCstar/GCstar). 
+</details>
 ## Install
 
 Istalling in your ``<home>/Programs/``
 
 
+    # Creating a directory called Programs (optional)
     mkdir $HOME/Programs && cd $_
+    # clone repository
     git clone https://github.com/ekardian/dryncsnsx
+    # Enter to dryncsnsx directory
     cd dryncsnsx
+    # give execution perm for the dryncs file
     chmod 755 dryncs
+    # run
     ./dryncs
 
 
