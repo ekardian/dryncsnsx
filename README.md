@@ -27,6 +27,7 @@ Istalling in your ``<home>/Programs/``
 
     mkdir $HOME/Programs && cd $_
     git clone https://github.com/ekardian/dryncsnsx
+    cd dryncsnsx
     chmod 755 dryncs
     ./dryncs
 
