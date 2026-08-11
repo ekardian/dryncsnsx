@@ -20,9 +20,14 @@ Tested in:
 
 <details>
     <summary><b>Tools for collect your media and tag tools</b></summary>
-* [Tellico](https://tellico-project.org/)
-* [Gcstar](https://gitlab.com/GCstar/GCstar). 
+    
+* [Tellico](https://tellico-project.org/) - Collection manager for books, videos, music, etc.
+* [Gcstar](https://gitlab.com/GCstar/GCstar).  Create and manage collections of books, videos, comics, music, games, etc.
+* [Puddletag](https://docs.puddletag.net/) - Simple, powerful audio tag editor.
+* exiftool - `sudo apt install libimage-exiftool-perl` - Library and program for read and write meta information in multimedia files.
+* eartag - `sudo apt install eartag` - Edit audio file tags
 </details>
+
 ## Install
 
 Istalling in your ``<home>/Programs/``
