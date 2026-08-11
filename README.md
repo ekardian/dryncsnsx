@@ -80,29 +80,37 @@ In the dryncs main menu choice the option 3 and follow the steps, remember do no
 
 ## For write the serial to your files use this script or modify it to your needs.
 
-For add serial to files to the begining files or before extension filenames
+<details>
+<summary><b>For add serial to files to the begining files or before extension filenames</b></summary>
 
 [In the beginning of the file serialize files with letter and numbers](https://github.com/ekardian/scripts-in-bash/blob/main/scripts/add-numbers-before-filename.sh)
 
 [In the end of the file serialize files with letter and numbers](https://github.com/ekardian/scripts-in-bash/blob/main/scripts/add-numbers-before-extension.sh)
+</details>
 
-For extract the letter/number serialized files from the last dash in the filename, you can try this script:
+<details>
+<summary><b>For extract the letter/number serialized files from the last dash in the filename, you can try this script:</b></summary>
 
 [extract-strings-numbers-from-filenames.sh](https://github.com/ekardian/scripts-in-bash/blob/main/scripts/extract-strings-numbers-from-filenames.sh)
+</details>
 
-For Directories
+<details>
+<summary><b>For Directories</b></summary>
 
-Add letter/numbers at the end directories
+Add letter/numbers at the end directories</b></summary>
 
 [add-numbers-at-the-end-directory.sh](https://github.com/ekardian/scripts-in-bash/blob/main/scripts/add-numbers-at-the-end-directory.sh)
+</details>
 
-Other Apps very cool for rename files.
+<details>
+<summary><b>Other Apps very cool for rename files.</b></summary>
 
 **F2 - Command-Line Batch Renaming**\
 https://github.com/ayoisaiah/f2
 
 **FileRenamer**\
 https://www.sttmedia.com/filerenamer-download
+</details>
 
 DONATION
 --------
@@ -120,7 +128,7 @@ Te sirvió algún script? genial!!!  Sin compromisos me podrías invitar un teci
 
 ## QR
 
-QR habilitado para Bolivia
-(Opcional) Notifica tu donación al correo: blkid@protonmail.com
+QR habilitado solo para Bolivia
 
-![qr-donation](https://github.com/user-attachments/assets/2ce27ee7-ad46-4925-bde9-32d1ffa8ea58)
+Manda un correo electrónico con el asunto <b>donación</b> al correo: blkid@protonmail.com para recibir el QR
+
