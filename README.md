@@ -1,6 +1,6 @@
 # dryncsnsx
 
-dryncsnsx ``4.4.1`` stable version. Launched 2026/05/13 \
+dryncsnsx `4.4.1` stable version. Launched 2026/08/02 05:06 \
 For test this versión just clone or download
 
 Copy serialized files listed from a text file, from local pc or remote pc to other place. (very faster!!!)
