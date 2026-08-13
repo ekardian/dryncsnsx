@@ -12,11 +12,15 @@ Copy from 10+ source to 1 target - serialized files and directories
 
 For a good performance and balanced network (redundancy) use two (NIC) gigabit network cards and raid 1.
 
-Tested in:
+<details>
+    <summary><b>Tested in:</b></summary>
+    
 * Debian 13 Trixie
 * Debian 12 bookworm
 * Linux Mint 22.1
 * Windows 10 (Cygwin)
+
+</details>
 
 <details>
     <summary><b>Tools for collect your media and media tag tools</b></summary>
@@ -28,7 +32,8 @@ Tested in:
 * eartag - `sudo apt install eartag` - Edit audio file tags
 </details>
 
-## Install
+<details>
+<summary><b>Install</b></summary>
 
 Istalling in your ``<home>/Programs/``
 
@@ -44,8 +49,10 @@ Istalling in your ``<home>/Programs/``
     # run
     ./dryncs
 
+</details>
 
-## Requirements
+<details>
+<summary><b>Requirements</b></summary>
 
 * dialog **(Version: 1.3-20230209)**
 * rsync
@@ -61,7 +68,10 @@ Istalling in your ``<home>/Programs/``
 * zip
 * unzip
 
-Samba Server for copy from shared resources.
+</details>
+
+<details>
+<summary><b>Samba Server for copy from shared resources</b></summary>
 
 We saw issues with the dimensions dialog boxes with Versions from (-)2019 , use the last update for Dialog program, check the version with:
 
@@ -91,6 +101,8 @@ With your favorite text editor write in a plain text the video file serial (1 by
     F3
 
 In the dryncs main menu choice the option 3 and follow the steps, remember do not forget your plain text, where are listed the serialized items `F1 F2 F3`.
+
+</details>
 
 ## For write the serial to your files use this script or modify it to your needs.
 
