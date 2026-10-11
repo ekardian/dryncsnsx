@@ -154,7 +154,10 @@ Te sirvió algún script? genial!!!  Sin compromisos me podrías invitar un teci
 
 ## QR
 
-QR habilitado solo para Bolivia
+QR Binance BNB Smart Chain
 
-Manda un correo electrónico con el asunto <b>donación</b> al correo: blkid@protonmail.com para recibir el QR
+0x6A8CaCF0ea822359D54e55D3CBe6E43468e8b25c
+
+<img width="881" height="1280" alt="BUSD-Binance-Smart-Chain" src="https://github.com/user-attachments/assets/84a555c2-3c3c-4dbf-984c-d3236c38d72d" />
+Si quieres quee te genere una billetera compatible con la tuya puedes escribirme o notificarme sobre el depósito, manda un correo electrónico con el asunto <b>donación</b> al correo: blkid@protonmail.com
 
