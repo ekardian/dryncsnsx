@@ -138,23 +138,9 @@ https://github.com/ayoisaiah/f2
 https://www.sttmedia.com/filerenamer-download
 </details>
 
-DONATION
---------
+## Donation
 
-## Western Union
-
-Works for you? grate!!!! You can give me a donation via Wester Union, thanks XD
-
-- Name: Erwin Marcell Alayn
-- Last Name: Castedo Plantarrosa
-- City/Country: Yacuiba, Departamento de Tarija, Bolivia
-- Notify me by email : blkid@protonmail.com
-
-Te sirvió algún script? genial!!!  Sin compromisos me podrías invitar un tecito enviándome una donación (5$ dólares americanos) por Western Union.
-
-## QR
-
-QR Binance BNB Smart Chain
+**QR Binance BNB Smart Chain**
 
 0x6A8CaCF0ea822359D54e55D3CBe6E43468e8b25c
 
