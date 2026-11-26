@@ -1,6 +1,6 @@
 # dryncsnsx
 
-dryncsnsx `4.4.1` stable version. Launched 2026/08/02 05:06 \
+dryncsnsx `4.4.2` stable version. Launched 2026/11/26 03:30\
 For test this versión just clone or download
 
 Copy serialized files listed from a text file, from local pc or remote pc to other place. (very faster!!!)
@@ -8,7 +8,7 @@ For Linux and Windows (Cygwin)
 
 Copy from 10+ source to 1 target - serialized files and directories
 
-<img width="731" height="437" alt="image" src="https://github.com/user-attachments/assets/9e423852-511c-4c84-8e3c-d3fc9614ef86" />
+<img width="688" height="398" alt="Captura desde 2026-11-26 03-42-00" src="https://github.com/user-attachments/assets/78bba1e4-4412-4505-87cc-70dd6ff7ce67" />
 
 For a good performance and balanced network (redundancy) use two (NIC) gigabit network cards and raid 1.
 
