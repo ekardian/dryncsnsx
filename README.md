@@ -67,6 +67,7 @@ Istalling in your ``<home>/Programs/``
 * samba client (optional)
 * zip
 * unzip
+* sudo
 
 </details>
 
@@ -104,7 +105,7 @@ In the dryncs main menu choice the option 3 and follow the steps, remember do no
 
 </details>
 
-## For write the serial to your files use this script or modify it to your needs.
+## For write the serial to your files you can use drynncsnsx (option 1 in the menu) or use this scripts or modify it to your needs.
 
 <details>
 <summary><b>For add serial to files to the begining files or before extension filenames</b></summary>
