@@ -41,13 +41,13 @@ Istalling in your ``<home>/Programs/``
     # Creating a directory called Programs (optional)
     mkdir $HOME/Programs && cd $_
     # clone repository
-    git clone https://github.com/ekardian/dryncsnsx
-    # Enter to dryncsnsx directory
-    cd dryncsnsx
+    git clone https://github.com/ekardian/dryncsnsx.git dryncsnsx.git
+    # Enter to dryncsnsx.git directory
+    cd dryncsnsx.git
     # give execution perm for the dryncs file
-    chmod 755 dryncs
+    chmod -R 755 *
     # run
-    ./dryncs
+    ./dryncsnsx
 
 </details>
 
