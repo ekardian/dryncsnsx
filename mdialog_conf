@@ -1,17 +1,19 @@
 #!/bin/bash
+# $Id: mdialog_conf.inc Template, v 4.4.2 2026/11/15 18:51
 #
 # Variable dryncs Config File
+# 
 #
 # For try this script you can test populating dirs and files with
 # the scripts 'populate-dirs-files' and 'populate-dirs-files-ns'
 # execute the script in diferent PC's or locally.
 # The steps inside the files and how to use them
 
-###############
-#    CONFIG   #
-###############
+##############
+#   CONFIG   #
+##############
 
-# If you make a bad configuration?, use the default configuration again.
+# If you make a bad configuration?, restore default configuration again.
 # cd ~/repository-cloned
 # cp -v mdialog_conf.inc mdialog_conf
 
@@ -32,10 +34,29 @@ themes_dir="$HOME/Programs/dryncsnsx.git/themes/"
 # BIN PATHS REQUERIMENTS
 
 # Path to dialog program
-DLG="/usr/bin/dialog"
+DLG="/bin/dialog"
 
 # Path to rsync program
-RSYNC="/usr/bin/rsync"
+RSYNC="/bin/rsync"
+
+# Path to sudo program
+SUDO="/bin/sudo"
+
+# rsync options - issues/tips https://rsync.samba.org/FAQ.html
+# tested with good performance in usb 2.0 and 100 Mpbs network
+# for usb, the efficiency depend of an quality hardware
+# For USB Option
+USB_OPTS="-rt --info=progress2"
+
+# For Local or PC Remote
+NET_OPTS="-ah --info=progress2"
+
+# Free Up Memory
+# rsync load a memory equal to the size of files will be copied
+# check available memory: grep 'MemFree' /proc/meminfo | grep -oE '[0-9]+'
+# write in kb unit, example for 400 Mb x 1024 = 409600
+# the script free up memory when detect less than this ammount of memory
+FREE_MEM_FROM="409600"
 
 # SOURCE AND TARGET DIRECTORIES FOR COPYING THE ITEMS
 
@@ -45,7 +66,7 @@ RSYNC="/usr/bin/rsync"
 
 # Default target directory.
 
-dialogdest="/home/ekardian/Programs/dryncsnsx.git/"
+dialogdest="$HOME/Programs/dryncsnsx.git/"
 
 # Default source directory.
 
@@ -57,7 +78,7 @@ dialogdest="/home/ekardian/Programs/dryncsnsx.git/"
 # you can fill by example
 # /home/your-user-name/Programs/dryncsnsx.git/orders/
 
-dialogorig="/home/ekardian/Programs/dryncsnsx.git/orders/"
+dialogorig="$HOME/Programs/dryncsnsx.git/orders/"
 
 # DATABASE PATHs
 

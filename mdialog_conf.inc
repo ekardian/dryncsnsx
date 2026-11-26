@@ -1,17 +1,19 @@
 #!/bin/bash
+# $Id: mdialog_conf.inc Template, v 4.4.2 2026/11/15 18:51
 #
 # Variable dryncs Config File
+# 
 #
 # For try this script you can test populating dirs and files with
 # the scripts 'populate-dirs-files' and 'populate-dirs-files-ns'
 # execute the script in diferent PC's or locally.
 # The steps inside the files and how to use them
 
-###############
-#    CONFIG   #
-###############
+##############
+#   CONFIG   #
+##############
 
-# If you make a bad configuration?, use the default configuration again.
+# If you make a bad configuration?, restore default configuration again.
 # cd ~/repository-cloned
 # cp -v mdialog_conf.inc mdialog_conf
 
@@ -22,8 +24,9 @@
 # $ dialog --create-file ~/Programs/dryncsnsx.git/themes/dialogrc.mytheme
 # and write your new theme in dryncstheme, not the entire name file, only "mytheme" word
 
-# Theme options: blue, dark, default. Default change to your bash or emulator default color
-dryncstheme="blue"
+# Theme options: bee, blue, dark, magenta, default.
+# Default change to your bash or emulator default color
+dryncstheme="dark"
 
 # Theme directory
 themes_dir="$HOME/Programs/dryncsnsx.git/themes/"
@@ -31,10 +34,29 @@ themes_dir="$HOME/Programs/dryncsnsx.git/themes/"
 # BIN PATHS REQUERIMENTS
 
 # Path to dialog program
-DLG="/usr/bin/dialog"
+DLG="/bin/dialog"
 
 # Path to rsync program
-RSYNC="/usr/bin/rsync"
+RSYNC="/bin/rsync"
+
+# Path to sudo program
+SUDO="/bin/sudo"
+
+# rsync options - issues/tips https://rsync.samba.org/FAQ.html
+# tested with good performance in usb 2.0 and 100 Mpbs network
+# for usb, the efficiency depend of an quality hardware
+# For USB Option
+USB_OPTS="-rt --info=progress2"
+
+# For Local or PC Remote
+NET_OPTS="-ah --info=progress2"
+
+# Free Up Memory
+# rsync load a memory equal to the size of files will be copied
+# check available memory: grep 'MemFree' /proc/meminfo | grep -oE '[0-9]+'
+# write in kb unit, example for 400 Mb x 1024 = 409600
+# the script free up memory when detect less than this ammount of memory
+FREE_MEM_FROM="409600"
 
 # SOURCE AND TARGET DIRECTORIES FOR COPYING THE ITEMS
 
@@ -63,22 +85,38 @@ dialogorig="$HOME/Programs/dryncsnsx.git/orders/"
 # Database x paths/+filnames
 # Run dryncsnsx, With the option 9 you can fill the databases paths
 
+# Music
 mallrepos="$HOME/Programs/dryncsnsx.git/db/mallrepos"
+# Videos
 fallrepos="$HOME/Programs/dryncsnsx.git/db/fallrepos"
+# Series
+sallrepos="$HOME/Programs/dryncsnsx.git/db/sallrepos"
+# Comics
 callrepos="$HOME/Programs/dryncsnsx.git/db/callrepos"
+# Libros
 lallrepos="$HOME/Programs/dryncsnsx.git/db/lallrepos"
+# Games
 jallrepos="$HOME/Programs/dryncsnsx.git/db/jallrepos"
+# Apps
 aallrepos="$HOME/Programs/dryncsnsx.git/db/aallrepos"
 
 # Database x File Size
 # Fill with full path, this will fill:
 # 'file size num in kb' 'file name with extension'
 
+# Music
 smallrepos="$HOME/Programs/dryncsnsx.git/db/smallrepos"
+# Videos
 sfallrepos="$HOME/Programs/dryncsnsx.git/db/sfallrepos"
+# Series
+ssallrepos="$HOME/Programs/dryncsnsx.git/db/ssallrepos"
+# Comics
 scallrepos="$HOME/Programs/dryncsnsx.git/db/scallrepos"
+# Libros
 slallrepos="$HOME/Programs/dryncsnsx.git/db/slallrepos"
+# Games
 sjallrepos="$HOME/Programs/dryncsnsx.git/db/sjallrepos"
+# Apps
 saallrepos="$HOME/Programs/dryncsnsx.git/db/saallrepos"
 
 # Database x index files
@@ -86,13 +124,31 @@ saallrepos="$HOME/Programs/dryncsnsx.git/db/saallrepos"
 # 'size' 'file name with extension' and others with:
 # 'file name' tracks for music
 
+# Music
 xmallrepos="$HOME/Programs/dryncsnsx.git/db/xmallrepos"
 xmallrepos2="$HOME/Programs/dryncsnsx.git/db/xmallrepos2"
+# Videos
 xfallrepos="$HOME/Programs/dryncsnsx.git/db/xfallrepos"
+# Series
+xsallrepos="$HOME/Programs/dryncsnsx.git/db/xsallrepos"
+xsallrepos2="$HOME/Programs/dryncsnsx.git/db/xsallrepos2"
+# Comics
 xcallrepos="$HOME/Programs/dryncsnsx.git/db/xcallrepos"
+# Libros
 xlallrepos="$HOME/Programs/dryncsnsx.git/db/xlallrepos"
+# Games
 xjallrepos="$HOME/Programs/dryncsnsx.git/db/xjallrepos"
+# Apps
 xaallrepos="$HOME/Programs/dryncsnsx.git/db/xaallrepos"
+
+# Database x index series size+path+file+ lct_code 
+# this will be dumped to xsallrepos2
+# find -type f -printf "-%s -%p\n" | numfmt --invalid=ignore --to=iec  "$psallrepos3"
+psallrepos3="$HOME/Programs/dryncsnsx.git/db/psallrepos3"
+
+# Series id code -S### dumped
+# code: grep -Eo "\-S[Z0-9.-]+" "$psallrepos3" | | sort -u -k,1 > "$Pslct"
+Pslct="$HOME/Programs/dryncsnsx.git/db/pslct"
 
 # Database x index music size+path+file+ lct_code 
 # this will be dumped to xmallrepos2
@@ -106,11 +162,19 @@ Pmlct="$HOME/Programs/dryncsnsx.git/db/pmlct"
 # ORDERS saved or to save in text file
 # this its only for an direct open to this orders files
 
+# Music
 morder="$HOME/Programs/dryncsnsx.git/orders/mcid.txt"
+# Videos
 forder="$HOME/Programs/dryncsnsx.git/orders/fcid.txt"
+# Series
+sorder="$HOME/Programs/dryncsnsx.git/orders/scid.txt"
+# Comics
 corder="$HOME/Programs/dryncsnsx.git/orders/ccid.txt"
+# Libros
 lorder="$HOME/Programs/dryncsnsx.git/orders/lcid.txt"
+# Games
 jorder="$HOME/Programs/dryncsnsx.git/orders/jcid.txt"
+# Apps
 aorder="$HOME/Programs/dryncsnsx.git/orders/acid.txt"
 
 # Exchange from Bolivian currency to Argentine currency
@@ -120,11 +184,18 @@ argchg="0.014"
 # by defulat 1, change to your needsdd
 
 # Movies
-# 4K, IMAX, REMUX, defect movies with =<1080p resolution
+# 4K, IMAX, REMUX, default movies with =<1080p resolution
 p4k="1"
 pimax="1"
 premux="1"
+prip="1"
 pdef="1"
+
+# Series
+# 4K, RIP (low bitrate/resolution), default series with =<1080p resolution
+ps4k="1"
+psrip="1"
+psdef="1"
 
 # Music
 palbum="1"
@@ -163,11 +234,19 @@ pcomic="1"
 # For Cygwin write the absolute path. Example:
 # fsourcepath="/cygdrive/unidad/REPO_PELICULAS/"
 
-msourcepath1="/path/to/music/"
+# Music
+msourcepath1="/path/to/musica/"
+# Videos
 fsourcepath1="/path/to/videos/"
+# Series
+ssourcepath1="/path/to/series/"
+# Comics
 csourcepath1="/path/to/comics/"
+# Libros
 lsourcepath1="/path/to/books/"
+# Games
 jsourcepath1="/path/to/games/"
+# Apps
 asourcepath1="/path/to/apps/"
 
 # If you have more things in other place, write the paths here
@@ -175,8 +254,10 @@ asourcepath1="/path/to/apps/"
 # you can write 2 paths for every category, 10 paths for video files,
 # if you want more source paths , you have the script source code for add more paths.
 
+# Music
 msourcepath2="/path/to/M2/"
 msourcepath3="/path/to/M3/"
+# Videos
 fsourcepath2="/path/to/F2/"
 fsourcepath3="/path/to/F3/"
 fsourcepath4="/path/to/F4/"
@@ -186,12 +267,26 @@ fsourcepath7="/path/to/F7/"
 fsourcepath8="/path/to/F8/"
 fsourcepath9="/path/to/F9/"
 fsourcepath10="/path/to/F10/"
+# Series
+ssourcepath2="/path/to/S2/"
+ssourcepath3="/path/to/S3/"
+ssourcepath4="/path/to/S4/"
+ssourcepath5="/path/to/S5/"
+ssourcepath6="/path/to/S6/"
+ssourcepath7="/path/to/S7/"
+ssourcepath8="/path/to/S8/"
+ssourcepath9="/path/to/S9/"
+ssourcepath10="/path/to/S10/"
+# Comics
 csourcepath2="/path/to/C2/"
 csourcepath3="/path/to/C3/"
+# Libros
 lsourcepath2="/path/to/L2/"
 lsourcepath3="/path/to/L3/"
+# Games
 jsourcepath2="/path/to/J2/"
 jsourcepath3="/path/to/J3/"
+# Apps
 asourcepath2="/path/to/A2/"
 asourcepath3="/path/to/A3/"
 
@@ -243,6 +338,7 @@ Db_log="$HOME/Programs/dryncsnsx.git/log/db.log"
 
 # Nfos
 urlbf="$HOME/Programs/dryncsnsx.git/nfo/Buscador de Películas Clips.url"
+urlbs="$HOME/Programs/dryncsnsx.git/nfo/Buscador de Series Clips.url"
 urlbm="$HOME/Programs/dryncsnsx.git/nfo/Buscador de Música Clips.url"
 urlbj="$HOME/Programs/dryncsnsx.git/nfo/Buscador de Juegos Clips.url"
 urlba="$HOME/Programs/dryncsnsx.git/nfo/Buscador de Apps Clips.url"
