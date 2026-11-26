@@ -16,20 +16,18 @@ Index
 - Explaining command options used with rsync
 - Explaining reports
 - Serialize files or directorios
+- Backup and Restore
 
 - KEYS TO NAVIGATE THROUGH WINDOWS
 
   * Arrow keys for navigate on windows dialogs
     left - top - rigth - down
-  * Press two time space bar for select directories
-    the selected directorie appear in the text bar
   * Press one time for select files
   * You can write manually the directories and pressing
     the bar for select
-  * Escape key for close windows, but not the copy process
-    for that just press CTRL + C
+  * Escape key for close windows, but not in the copy
+    process, for that press CTRL + C for interrupt
   * Mouse work on all windows
-
 
 - WHAT THIS SCRIPT DOES
 
@@ -73,6 +71,32 @@ Index
   F3
 
   Use the module Movies for copy this listed files from fcid.txt.
+
+  check the scripts populate-dirs-files and populate-dirs-files-ns2
+  for watch the structure that need to be organizated your files
+  for populate the database. you can run inside a directory for
+  security reason like not overwrite some dirs.
+
+  cd <cloned-repository>
+  mkdir -p $HOME/testing/
+  cp -v docs/populate-dirs-files ~/testing/
+  cd ~/testing/
+  ./populate-dirs-files
+  cd ~/
+
+  mkdir -p $HOME/testing/
+  cp -v docs/populate-dirs-files-ns2 ~/testing/
+  cd ~/testing/
+  ./populate-dirs-files-ns2
+  cd ~/
+
+  check with tree the directories structure like.
+
+  tree -d
+
+  or export to html
+
+  tree --charset=UTF-8 -T "Structure Files" -H <dir> -o output.html
               
 - FIRST CONFIGURE THE PROGRAM IF NOT WILL FAIL
 
@@ -310,6 +334,27 @@ For more details about the recursion copy check the 'man rsync'.
   ./Álbum-a -> ./Álbum-a-F1
   ./Álbum-b -> ./Álbum-b-F2
   ./Álbum-c -> ./Álbum-c-F3
+
+- BACKUP AND RESTORATION
+
+  Just follow the steps windows dialogs, done.
+  
+  This backup and compress the files and directories:
+  
+  files:
+  mdialog_conf
+
+  directories:
+  db
+  log
+  orders
+  reports
+
+  Even after an update version you con restore the copmressed
+  backup file.
+  This overwrite the same files and directories listed, without
+  affect the functionality of dryncsnsx
+
 
 ------------------------------------------------------------------
       _                                                          
