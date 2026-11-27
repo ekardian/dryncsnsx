@@ -8,6 +8,10 @@ For Linux and Windows (Cygwin)
 
 Copy from 10+ source to 1 target - serialized files and directories
 
+The script requires that the serial be written in uppercase.\
+Example for write the serial F1234 for the file named video-file.mp4, would be written this way.\
+**video-file-F1234.mp4**
+
 <img width="688" height="398" alt="Captura desde 2026-11-26 03-42-00" src="https://github.com/user-attachments/assets/78bba1e4-4412-4505-87cc-70dd6ff7ce67" />
 
 For a good performance and balanced network (redundancy) use two (NIC) gigabit network cards and raid 1.
